@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#ffffff">
+<title>גישה מרחוק</title>
+<script>/* שגיאות JS מוצגות על המסך — בטלפון אין קונסולה */
+(function(){function show(m){try{var b=document.getElementById('jserr');if(!b){b=document.createElement('div');b.id='jserr';b.setAttribute('role','alert');b.onclick=function(){b.style.display='none';};(document.body||document.documentElement).appendChild(b);}b.style.display='';b.textContent='⚠ שגיאה בדף: '+m+' — לחץ כדי לסגור';}catch(e){}}
+window.__showErr=show;
+window.addEventListener('error',function(e){if(e&&e.message&&e.message!=='Script error.')show(e.message+(e.lineno?' (שורה '+e.lineno+')':''));});
+window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)show(String(r.message||r));});})();</script>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--line:#e3e6ea;--bd:#d5d9df;--txt:#1b1f24;--dim:#5b6472;--lab:#3d4450;
+--acc:#1d4ed8;--accbg:#eef3ff;--ok:#15803d;--okbg:#e9f7ee;--warn:#b45309;--warnbg:#fff4e5;--err:#b91c1c;--errbg:#fef2f2;
+--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--fbg,var(--bg));color:var(--txt);font:16px/1.45 Assistant,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+button{touch-action:manipulation}
+/* ה-shell שומר מקום ל-notch בצדדים ולפס הבית למטה. בתוך ה-iframe ערכי env() הם 0, לכן זה חייב להיות כאן */
+.shell{display:flex;flex-direction:column;height:100%;height:100dvh;background:var(--fbg,var(--bg));
+ padding:0 var(--sr) var(--sb) var(--sl)}
+.bar{flex:none;display:flex;align-items:center;gap:10px;padding:calc(8px + var(--st)) 14px 8px;background:#fff;border-bottom:1px solid var(--line);min-height:calc(52px + var(--st))}
+.bar .nm{font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;font-size:13px;font-weight:700;background:#eef0f3;color:var(--dim);white-space:nowrap;flex:none}
+.chip.ok{background:var(--okbg);color:var(--ok)}.chip.warn{background:var(--warnbg);color:var(--warn)}.chip.err{background:var(--errbg);color:var(--err)}.chip.info{background:var(--accbg);color:var(--acc)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.sp{flex:1}
+.meta{font-size:12px;color:var(--dim);white-space:nowrap;flex:none}
+.ib{border:1px solid var(--line);background:#fff;border-radius:10px;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none;color:var(--txt)}
+/* width:1px + min-width:100% — באייפון iframe בלי זה מתרחב לרוחב התוכן שלו ויוצא מהמסך */
+iframe{flex:1;width:1px;min-width:100%;min-height:0;border:0;background:var(--fbg,var(--bg));display:block}
+/* שכבות: נגללות אם המקלדת מכסה, ומכבדות את האזורים הבטוחים */
+.ov{position:fixed;inset:0;background:rgba(244,245,247,.97);display:none;justify-content:center;align-items:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:10;
+ padding:max(20px,var(--st)) max(20px,var(--sr)) max(20px,var(--sb)) max(20px,var(--sl))}
+.ov.on{display:flex}
+.box{margin:auto;background:#fff;border:1px solid var(--line);border-radius:22px;padding:24px 22px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 30px rgba(15,23,42,.06)}
+.box h2{margin:0;font-size:22px;font-weight:800}
+.box p{margin:0}
+.dim{color:var(--dim)}.sm{font-size:14px}.xs{font-size:13px}
+.brk{word-break:break-all}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:600;color:var(--lab)}
+.in{min-height:48px;padding:0 14px;border:1px solid var(--bd);border-radius:12px;width:100%;background:#fff;font-size:16px;-webkit-appearance:none;appearance:none}
+.ltr{direction:ltr;text-align:right}
+.row{display:flex;gap:10px;align-items:center}
+.btn{min-height:50px;padding:0 18px;border-radius:14px;border:1px solid var(--bd);background:#fff;font-weight:700;font-size:16px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;touch-action:manipulation}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.chk{display:flex;align-items:center;gap:10px;font-size:15px;cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--acc)}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid var(--accbg);border-top-color:var(--acc);animation:sp 1s linear infinite;align-self:center}
+@keyframes sp{to{transform:rotate(360deg)}}
+.prog{height:8px;border-radius:999px;background:var(--accbg);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--acc);transition:width .2s}
+.msg{border-radius:14px;padding:12px 14px;font-size:15px;font-weight:600}
+.msg.err{background:var(--errbg);color:#991b1b}.msg.warn{background:var(--warnbg);color:#92400e}
+details summary{cursor:pointer;font-weight:600;min-height:32px;font-size:14px}
+.toast{position:fixed;top:calc(64px + var(--st));left:50%;transform:translateX(-50%) translateY(calc(-160px - var(--st)));background:var(--txt);color:#fff;padding:12px 18px;border-radius:14px;font-weight:700;font-size:15px;z-index:30;transition:transform .25s;max-width:92vw;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.2);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{background:var(--ok)}.toast.err{background:var(--err)}
+#jserr{position:fixed;top:var(--st);left:0;right:0;z-index:50;background:#b91c1c;color:#fff;font-size:13px;font-weight:700;padding:10px 14px;line-height:1.5;word-break:break-word;cursor:pointer}
+@media(max-width:560px){.meta{display:none}.bar{padding:calc(8px + var(--st)) 10px 8px;gap:8px}.chip.info{display:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+ <div class="bar">
+  <button class="ib" onclick="goBack()" aria-label="חזרה לשלט" title="חזרה לשלט"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+  <span class="nm" id="bName">גישה מרחוק</span>
+  <span class="chip info">מרחוק</span>
+  <span class="sp"></span>
+  <span class="meta" id="bMeta"></span>
+  <span class="chip" id="bConn"><span class="dot"></span><span id="bConnT">מנותק</span></span>
+  <button class="ib" onclick="reloadPage()" aria-label="טען מחדש" title="טען מחדש"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg></button>
+  <button class="ib" onclick="openSetup()" aria-label="פרטי חיבור" title="פרטי חיבור"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg></button>
+ </div>
+ <iframe id="frame" title="ממשק הלוח"></iframe>
+</div>
+
+<!-- טעינה -->
+<div class="ov" id="ovLoad"><div class="box" style="align-items:stretch;text-align:center">
+ <div class="spin"></div>
+ <h2 id="ldT">מתחבר ללוח…</h2>
+ <p class="dim sm" id="ldS">דרך שרת ה-MQTT</p>
+ <div class="prog" id="ldP" style="display:none"><i id="ldPi"></i></div>
+</div></div>
+
+<!-- הודעה / שגיאה -->
+<div class="ov" id="ovMsg"><div class="box">
+ <h2 id="msT">לא ניתן להתחבר</h2>
+ <div class="msg err" id="msB"></div>
+ <p class="dim sm" id="msH"></p>
+ <div class="row"><button class="btn pri" style="flex:1" onclick="retry()">נסה שוב</button><button class="btn" onclick="openSetup()">פרטי חיבור</button></div>
+ <button class="btn" onclick="goBack()">חזרה לשלט</button>
+</div></div>
+
+<!-- ניתוק בגלל חוסר פעילות -->
+<div class="ov" id="ovIdle"><div class="box">
+ <h2>החיבור הושהה</h2>
+ <p class="dim">אחרי 10 דקות בלי פעילות החיבור נסגר אוטומטית, כדי לא לבזבז את תעבורת שרת ה-MQTT.</p>
+ <button class="btn pri" onclick="resume()">המשך מאיפה שעצרתי</button>
+ <button class="btn" onclick="goBack()">חזרה לשלט</button>
+</div></div>
+
+<!-- קובץ מוכן (טלפונים): השמירה עצמה חייבת לקרות מלחיצה של המשתמש -->
+<div class="ov" id="ovSave"><div class="box">
+ <h2>הקובץ מוכן</h2>
+ <p class="dim sm brk" id="svN"></p>
+ <button class="btn pri" id="svA"></button>
+ <button class="btn" id="svB"></button>
+ <button class="btn" onclick="saveClose()">סגור</button>
+ <p class="dim xs" id="svH"></p>
+</div></div>
+
+<!-- פרטי חיבור -->
+<div class="ov" id="ovSetup"><div class="box">
+ <h2>גישה מרחוק ללוח</h2>
+ <p class="dim sm">הממשק המלא של הלוח, מכל מקום — דרך שרת ה-MQTT, בלי לפתוח פורטים בראוטר. צריך את סיסמת הממשק של הלוח.</p>
+ <label class="f">שם משתמש לממשק<input class="in" id="fWU" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" value="admin"></label>
+ <label class="f">סיסמת הממשק<input class="in" type="password" id="fWP" autocomplete="current-password"></label>
+ <label class="chk sm"><input type="checkbox" id="fRem">לזכור את הסיסמה במכשיר הזה</label>
+ <details><summary>פרטי שרת MQTT</summary>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+   <p class="xs dim">אותם פרטים כמו בשלט בטלפון. אם השלט פתוח באותו דפדפן, הם כבר כאן.</p>
+   <label class="f">כתובת שרת<input class="in ltr" id="fHost" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="url" value="u7ced2cc.ala.eu-central-1.emqxsl.com"></label>
+   <div class="row">
+    <label class="f" style="flex:1">פורט (WSS)<input class="in" type="number" inputmode="numeric" id="fPort" value="8084"></label>
+    <label class="f" style="flex:1">משתמש<input class="in" id="fUser" value="admin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+   </div>
+   <label class="f">סיסמת שרת<input class="in" type="password" id="fPass" autocomplete="off"></label>
+  </div>
+ </details>
+ <div class="msg err" id="fErr" style="display:none"></div>
+ <button class="btn pri" onclick="saveSetup()">התחבר</button>
+ <button class="btn" onclick="goBack()">חזרה לשלט</button>
+</div></div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =====================================================================
+   KiNET Bridge — גישה מרחוק לממשק המלא (מנהרת HTTP דרך MQTT, לוח v2.48+)
+   כל בקשת fetch של דף הלוח נשלחת ל-kinet/http/req ומתקבלת מ-kinet/http/res/<cid>.
+   קובץ אחד לכל המכשירים: מחשב, אייפון/אייפד ואנדרואיד —
+   safe-area, שמירת קבצים דרך גיליון השיתוף, וחיבור מחדש אחרי רקע/נעילת מסך.
+   ===================================================================== */
+var REQ_T='kinet/http/req', RES_P='kinet/http/res/', CHUNK=12288, WIN=4;
+var POLL_MS=3000, IDLE_MS=10*60*1000, STEP_TO=15000, DOWN_TO=20000, RESUME_MS=8000;
+var BLOCKED=/^\/(update|sdformat|rollback)(\?|$)/;
+var cfg={}, auth={u:'admin',p:''}, client=null, cid='', rid=0, Q=[], cur=null;
+var bytesIn=0, bytesOut=0, lastRtt=0, lastAct=Date.now(), idle=false, loaded=false, B=null;
+var downAt=0, hiddenAt=0;
+
+// ---------- זיהוי מכשיר ----------
+var UA=navigator.userAgent||'';
+var IOS=/iPhone|iPad|iPod/i.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);   // iPadOS מזדהה כ-Mac
+var ANDROID=/Android/i.test(UA);
+var MOBILE=IOS||ANDROID;
+var STANDALONE=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+document.addEventListener('touchstart',function(){},{passive:true});   // מפעיל :active באייפון
+
+// ---------- טעינת mqtt.js עם שרתי גיבוי ----------
+// אם שרת אחד חסום (רשת, חוסם תוכן) — מנסים את הבא, במקום שהדף ייתקע בלי הודעה
+var MQTT_URLS=['https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js','https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js','https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js'];
+var mqW=[],mqBusy=false;
+function needMqtt(cb){if(window.mqtt){cb(true);return;}mqW.push(cb);if(mqBusy)return;mqBusy=true;var i=0;
+ (function next(){if(window.mqtt||i>=MQTT_URLS.length){mqBusy=false;var ok=!!window.mqtt,w=mqW;mqW=[];w.forEach(function(f){f(ok);});return;}
+  var s=document.createElement('script'),done=false;s.src=MQTT_URLS[i++];s.async=true;
+  var go=function(){if(done)return;done=true;clearTimeout(t);next();},t=setTimeout(go,10000);
+  s.onload=go;s.onerror=go;document.head.appendChild(s);})();}
+
+function $(i){return document.getElementById(i);}
+function toast(t,k){var e=$('toast');e.textContent=t;e.className='toast show '+(k||'');clearTimeout(e._t);e._t=setTimeout(function(){e.className='toast';},3200);}
+function ov(id){['ovLoad','ovMsg','ovIdle','ovSetup','ovSave'].forEach(function(o){$(o).classList.toggle('on',o===id);});}
+function conn(cls,t){$('bConn').className='chip '+cls;$('bConnT').textContent=t;}
+function fmtB(b){return b>=1048576?(b/1048576).toFixed(1)+'MB':b>=1024?(b/1024).toFixed(0)+'KB':b+'B';}
+function meta(){$('bMeta').textContent='תעבורה '+fmtB(bytesIn+bytesOut)+(lastRtt?' · '+lastRtt+'ms':'');}
+var enc=new TextEncoder(), dec=new TextDecoder();
+function u8(x){return x instanceof Uint8Array?x:new Uint8Array(x);}
+function cat(a,b){var o=new Uint8Array(a.length+b.length);o.set(a,0);o.set(b,a.length);return B?B.from(o):o;}
+function b64(s){return btoa(unescape(encodeURIComponent(s)));}
+
+// חזרה לשלט. באפליקציה ממסך הבית אין כפתור "אחורה" של הדפדפן, לכן הכפתור בפס העליון
+function goBack(){if(history.length>1&&document.referrer&&document.referrer.indexOf(location.host)>=0)history.back();else location.href='admin.html';}
+
+// ---------- פרטי חיבור ----------
+// אפשר לפתוח גם מקישור/QR של הלוח: #h=<ברוקר>&p=<פורט WSS>&u=<משתמש>&k=<סיסמה>
+function hashCfg(){var h=(location.hash||'').replace(/^#/,'');if(h.indexOf('h=')<0)return null;
+ var o={};h.split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0){try{o[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1));}catch(e){}}});
+ try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+ if(!o.h)return null;return {host:o.h,port:o.p||'8084',user:o.u||'',pass:o.k||''};}
+function loadCfg(){try{cfg=JSON.parse(localStorage.getItem('kinetRemote')||'{}');}catch(e){cfg={};}
+ try{auth=JSON.parse(sessionStorage.getItem('kinetWebAuth')||localStorage.getItem('kinetWebAuth')||'null')||{u:'admin',p:''};}catch(e){auth={u:'admin',p:''};}}
+function openSetup(err){loadCfg();
+ if(cfg.host)$('fHost').value=cfg.host;if(cfg.port)$('fPort').value=cfg.port;if(cfg.user)$('fUser').value=cfg.user;if(cfg.pass)$('fPass').value=cfg.pass;
+ $('fWU').value=auth.u||'admin';$('fWP').value=auth.p||'';var rem=false;try{rem=!!localStorage.getItem('kinetWebAuth');}catch(e){}$('fRem').checked=rem;
+ $('fErr').style.display=err?'':'none';$('fErr').textContent=err||'';
+ if(!$('fPass').value)$('ovSetup').querySelector('details').open=true;
+ ov('ovSetup');
+ // בטלפון לא מקפיצים מקלדת לבד — היא מכסה חצי מסך לפני שהמשתמש ראה מה כתוב
+ if(!MOBILE)setTimeout(function(){(err&&/סיסמ/.test(err)?$('fWP'):(!$('fWP').value?$('fWP'):null))&&$('fWP').focus();},60);}
+function saveSetup(){
+ var c=loadCfgRaw();c.host=$('fHost').value.trim();c.port=$('fPort').value.trim()||'8084';c.user=$('fUser').value.trim();c.pass=$('fPass').value;
+ if(!c.host||!c.pass){$('fErr').style.display='';$('fErr').textContent='חסרים פרטי שרת ה-MQTT';$('ovSetup').querySelector('details').open=true;return;}
+ if(!$('fWP').value){$('fErr').style.display='';$('fErr').textContent='חסרה סיסמת הממשק';return;}
+ try{localStorage.setItem('kinetRemote',JSON.stringify(c));}catch(e){}
+ auth={u:$('fWU').value.trim()||'admin',p:$('fWP').value};
+ try{if($('fRem').checked){localStorage.setItem('kinetWebAuth',JSON.stringify(auth));sessionStorage.removeItem('kinetWebAuth');}
+  else{localStorage.removeItem('kinetWebAuth');sessionStorage.setItem('kinetWebAuth',JSON.stringify(auth));}}catch(e){}
+ if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();   // סוגר את המקלדת בטלפון
+ cfg=c;start();}
+function loadCfgRaw(){try{return JSON.parse(localStorage.getItem('kinetRemote')||'{}');}catch(e){return {};}}
+
+// ---------- MQTT ----------
+// כל לקוח בודק שהוא עדיין ה-client הנוכחי, כדי שאירועים של חיבור ישן (שנסגר בחיבור מחדש) לא ישפיעו על החדש
+function connect(){return new Promise(function(res,rej){
+ if(client){var old=client;client=null;try{old.end(true);}catch(e){}}
+ conn('warn','מתחבר…');
+ needMqtt(function(ok){
+ if(!ok){conn('err','שגיאה');rej('לא ניתן לטעון את רכיב החיבור (mqtt.js) — בדוק את החיבור לאינטרנט, או כבה חוסם תוכן בדפדפן');return;}
+ cid=Math.random().toString(36).slice(2,12).replace(/[^a-z0-9]/g,'x');
+ var url=/^wss?:\/\//.test(cfg.host)?cfg.host:('wss://'+cfg.host+':'+(cfg.port||'8084')+'/mqtt');
+ var done=false, myCid=cid, me;
+ // keepalive קצר: בטלפון שחזר מהרקע, חיבור מת מתגלה תוך עשרות שניות ולא דקה וחצי
+ try{me=mqtt.connect(url,{username:cfg.user,password:cfg.pass,clientId:'kinet-remote-'+myCid,clean:true,reconnectPeriod:3000,connectTimeout:10000,keepalive:20});}
+ catch(e){conn('err','שגיאה');rej('כתובת שרת ה-MQTT לא תקינה: '+(e&&e.message||e));return;}
+ client=me;
+ me.on('connect',function(){if(me!==client)return;
+  me.subscribe([RES_P+myCid,'kinet/status'],{qos:0},function(){if(me!==client)return;
+   downAt=0;conn('ok','מחובר');if(!done){done=true;res();}pump();});});
+ me.on('reconnect',function(){if(me===client)conn('warn','מתחבר מחדש…');});
+ me.on('close',function(){if(me!==client)return;conn('err',idle?'מושהה':'מנותק');if(!downAt)downAt=Date.now();if(cur)cur.drop();});
+ me.on('error',function(e){if(me!==client)return;conn('err','שגיאה');if(!done&&e&&/auth|authori|bad user/i.test(e.message||'')){done=true;rej('פרטי שרת ה-MQTT שגויים (משתמש/סיסמה)');}});
+ me.on('message',function(t,p){if(me===client)onMsg(t,p);});
+ setTimeout(function(){if(!done){done=true;rej('אין חיבור לשרת ה-MQTT — בדוק את פרטי השרת ואת החיבור לאינטרנט');}},15000);
+ });
+});}
+function onMsg(topic,payload){
+ if(!B&&payload&&payload.constructor&&payload.constructor.from)B=payload.constructor;
+ if(topic==='kinet/status'){try{var d=JSON.parse(payload.toString());if(d&&d.mode)$('bName').dataset.mode=d.mode;}catch(e){}return;}
+ if(topic!==RES_P+cid)return;
+ var p=u8(payload);bytesIn+=p.length;meta();
+ var nl=p.indexOf(10);if(nl<0)return;
+ var h=dec.decode(p.subarray(0,nl)),data=p.subarray(nl+1),t=h.split(' ');
+ if(!cur||+t[1]!==cur.rid)return;
+ cur.touch();
+ if(t[0]==='A'){cur.acked=Math.max(cur.acked,+t[2]);cur.pump();}
+ else if(t[0]==='R'){var seq=+t[2],last=t[3]==='1';cur.parts[seq]=data.slice();cur.status=+t[4];cur.total=+t[5];
+  cur.ctype=t[6]==='-'?'':decodeURIComponent(t[6]);if(last)cur.lastSeq=seq;cur.prog();cur.check();}
+ else if(t[0]==='E'){cur.finish({status:+t[2],ctype:'text/plain; charset=utf-8',body:enc.encode(t.slice(3).join(' ')),tunErr:true});}
+}
+
+// ---------- מנהרה: תור בקשות, אחת בכל פעם ----------
+function tfetch(method,path,ctype,body,onProg){return new Promise(function(res,rej){Q.push({method:method,path:path,ctype:ctype,body:body,res:res,rej:rej,tries:0,onProg:onProg});pump();});}
+function rejectAll(m){Q.splice(0).forEach(function(r){r.rej(m);});}
+function pump(){
+ if(cur||!Q.length)return;
+ if(!client||idle){rejectAll(idle?'מושהה':'אין חיבור');return;}
+ if(!client.connected)return;   // ממתינים לחיבור מחדש — pump נקרא שוב כשהחיבור חוזר (או שהבקשות נדחות אחרי DOWN_TO)
+ var r=Q.shift(),body=r.body||new Uint8Array(0),n=Math.max(1,Math.ceil(body.length/CHUNK));
+ var path=String(r.path).replace(/^[a-z]+:\/\/[^\/]*/i,'').replace(/ /g,'%20');if(path.charAt(0)!=='/')path='/'+path;
+ var t0=Date.now(),timer=null;
+ cur={rid:++rid,acked:-1,sent:0,parts:[],lastSeq:-1,status:0,total:0,ctype:'',
+  touch:function(){clearTimeout(timer);timer=setTimeout(function(){cur&&cur.fail('הלוח לא עונה — אולי הוא כבוי, בלי אינטרנט, או שהגישה מרחוק לא זמינה בגרסה שלו (צריך v2.48)');},STEP_TO);},
+  pump:function(){while(cur&&client&&client.connected&&cur.sent<n&&cur.sent<=cur.acked+WIN){var s=cur.sent,chunk=body.subarray(s*CHUNK,Math.min(body.length,(s+1)*CHUNK));
+    var h=s===0?('Q '+cid+' '+cur.rid+' 0 '+body.length+' '+r.method+' '+path+' '+(r.ctype?encodeURIComponent(r.ctype):'-')+' '+(auth.p?b64(auth.u+':'+auth.p):'-')+'\n'):('Q '+cid+' '+cur.rid+' '+s+'\n');
+    var pl=cat(enc.encode(h),chunk);bytesOut+=pl.length;client.publish(REQ_T,pl,{qos:1});cur.sent++;
+    if(r.onProg&&body.length>CHUNK)r.onProg(Math.min(1,cur.sent*CHUNK/body.length),'up');}meta();},
+  prog:function(){if(r.onProg&&cur.total>CHUNK){var got=0;cur.parts.forEach(function(x){if(x)got+=x.length;});r.onProg(Math.min(1,got/cur.total),'down');}},
+  check:function(){if(cur.lastSeq<0)return;for(var i=0;i<=cur.lastSeq;i++)if(!cur.parts[i])return;
+    var out=new Uint8Array(cur.total),o=0;for(var j=0;j<=cur.lastSeq;j++){out.set(cur.parts[j],o);o+=cur.parts[j].length;}
+    cur.finish({status:cur.status,ctype:cur.ctype,body:out.subarray(0,o)});},
+  finish:function(x){clearTimeout(timer);cur=null;
+    if(x.tunErr&&x.status===503&&r.tries<3){r.tries++;Q.unshift(r);setTimeout(pump,900);return;}
+    lastRtt=Date.now()-t0;meta();r.res(x);setTimeout(pump,0);},
+  fail:function(m){clearTimeout(timer);cur=null;r.rej(m);setTimeout(pump,0);},
+  // החיבור נקטע באמצע (רקע, נעילת מסך, מעבר בין Wi-Fi לסלולר). GET חוזר לתור ונשלח שוב כשהחיבור חוזר;
+  // פעולה ששולחת נתונים לא נשלחת שוב, כי ייתכן שהלוח כבר ביצע אותה
+  drop:function(){clearTimeout(timer);cur=null;
+    if(r.method==='GET'&&r.tries<3){r.tries++;Q.unshift(r);}
+    else r.rej('החיבור נקטע באמצע הפעולה — בדוק אם היא בוצעה ונסה שוב');
+    setTimeout(pump,0);}};
+ cur.touch();cur.pump();}
+// בקשות שמחכות לחיבור שלא חוזר — נדחות אחרי DOWN_TO כדי שהדף לא ייתקע
+setInterval(function(){if(Q.length&&client&&!client.connected&&downAt&&Date.now()-downAt>DOWN_TO)rejectAll('אין חיבור לשרת ה-MQTT');},2000);
+
+// ---------- שמירת קבצים ----------
+// מחשב: הורדה רגילה. טלפון: חלונית עם כפתור — גם באייפון וגם באנדרואיד גיליון השיתוף נפתח רק מלחיצה של המשתמש,
+// ובאייפון באפליקציה ממסך הבית הורדה ישירה של blob לא אמינה, לכן "שמור לקבצים" הוא הכפתור הראשי שם.
+var SV=null;
+function canShareFile(f){try{return !!(f&&navigator.share&&navigator.canShare&&navigator.canShare({files:[f]}));}catch(e){return false;}}
+function dlBlob(blob,fn){var u=URL.createObjectURL(blob),x=document.createElement('a');x.href=u;x.download=fn;x.rel='noopener';x.style.display='none';
+ document.body.appendChild(x);x.click();setTimeout(function(){URL.revokeObjectURL(u);x.remove();},60000);}
+function saveFile(blob,fn){
+ if(!MOBILE){dlBlob(blob,fn);toast('ההורדה הסתיימה','ok');return;}
+ var type=(blob.type||'').split(';')[0].trim()||'application/octet-stream',f=null;
+ try{f=new File([blob],fn,{type:type});}catch(e){}
+ var share=canShareFile(f),a=$('svA'),b=$('svB');
+ SV={blob:blob,fn:fn,file:f};
+ $('svN').textContent=fn+' · '+fmtB(blob.size);
+ if(IOS&&share){a.textContent='שמור לקבצים / שתף';a.onclick=svShare;b.textContent='הורד';b.onclick=svDl;b.style.display='';
+  $('svH').textContent='ב״שמור לקבצים״ בוחרים תיקייה באייפון או ב-iCloud.'+(STANDALONE?' באפליקציה ממסך הבית ״הורד״ לא תמיד עובד.':'');}
+ else{a.textContent='הורד';a.onclick=svDl;
+  if(share){b.textContent='שתף / שמור במקום אחר';b.onclick=svShare;b.style.display='';}else b.style.display='none';
+  $('svH').textContent=IOS?'הקובץ יופיע באפליקציית ״קבצים״, בתיקיית ההורדות.':'הקובץ יישמר בתיקיית ההורדות של הטלפון.';}
+ ov('ovSave');}
+function svShare(){if(!SV)return;var s=SV;
+ navigator.share({files:[s.file],title:s.fn}).then(function(){saveClose();},function(e){
+  if(e&&e.name==='AbortError')return;   // המשתמש סגר את גיליון השיתוף — החלונית נשארת פתוחה
+  toast('השיתוף נכשל — נסה ״הורד״','err');});}
+function svDl(){if(!SV)return;dlBlob(SV.blob,SV.fn);saveClose();toast('ההורדה התחילה','ok');}
+function saveClose(){SV=null;ov(null);}
+
+// ---------- ה-API שהדף בתוך ה-iframe משתמש בו ----------
+window.KR={
+ fetch:function(m,p,ct,b){activity(false);return tfetch(m,p,ct,b);},
+ blocked:function(p){return BLOCKED.test(String(p).replace(/^[a-z]+:\/\/[^\/]*/i,''));},
+ pollMs:function(){return POLL_MS;},
+ paused:function(){return idle||document.hidden||!client||!client.connected;},
+ activity:function(){activity(true);},
+ toast:toast,
+ save:function(blob,fn){saveFile(blob,fn);}
+};
+function activity(user){if(user)lastAct=Date.now();}
+['pointerdown','keydown','touchstart'].forEach(function(t){document.addEventListener(t,function(){activity(true);},{passive:true});});
+setInterval(function(){if(loaded&&!idle&&Date.now()-lastAct>IDLE_MS)goIdle();},15000);
+function goIdle(){idle=true;var c=client;client=null;if(c){try{c.end(true);}catch(e){}}
+ if(cur)cur.fail('מושהה');rejectAll('מושהה');conn('','מושהה');ov('ovIdle');}
+function resume(){idle=false;lastAct=Date.now();ov(null);connect().then(function(){toast('מחובר שוב','ok');}).catch(function(e){showErr('לא ניתן להתחבר',String(e),'');});}
+
+// ---------- חזרה מהרקע ----------
+// אייפון ואנדרואיד מקפיאים דף ברקע. החיבור עלול להיראות "מחובר" אבל להיות מת, אז אחרי הפסקה ארוכה
+// פותחים חיבור חדש מיד במקום לחכות שה-keepalive יגלה את זה.
+function recycle(){if(idle||!loaded||!cfg.host)return;
+ if(cur)cur.drop();
+ connect().catch(function(){});}   // אם נכשל — reconnectPeriod ממשיך לנסות, והמצב מוצג בפס העליון
+document.addEventListener('visibilitychange',function(){
+ if(document.hidden){hiddenAt=Date.now();return;}
+ activity(true);
+ if(hiddenAt&&Date.now()-hiddenAt>RESUME_MS)recycle();
+ hiddenAt=0;});
+window.addEventListener('pageshow',function(e){if(e.persisted)recycle();});   // ספארי מחזיר דף מה-bfcache
+window.addEventListener('online',function(){if(client&&!client.connected)recycle();});
+
+// ---------- shim שמוזרק לדף הלוח ----------
+var SHIM='<script>(function(){var P=parent.KR,cache={},poll=/^\\/(status|seen)(\\?|$)/,gap={"/mon":2000,"/rdm":3000},nextAt={};'+
+ 'function mk(r){var nb=(r.status==204||r.status==304)?null:r.body;return new Response(nb,{status:r.status,headers:{"Content-Type":r.ctype||"text/plain; charset=utf-8"}});}'+
+ 'function pth(u){u=String(u);var m=u.match(/^[a-z]+:\\/\\/[^\\/]*(\\/.*)?$/i);return m?(m[1]||"/"):u;}'+
+ 'window.fetch=function(input,init){init=init||{};var url=pth(typeof input==="string"?input:input.url),method=(init.method||"GET").toUpperCase();'+
+ 'if(P.blocked(url))return Promise.resolve(new Response("לא זמין בגישה מרחוק — רק ברשת המקומית",{status:403,headers:{"Content-Type":"text/plain; charset=utf-8"}}));'+
+ 'var isPoll=method==="GET"&&poll.test(url),e=cache[url];'+
+ 'if(isPoll&&e&&e.r&&(Date.now()-e.t<P.pollMs()||document.hidden||P.paused()))return Promise.resolve(mk(e.r));'+
+ 'if(isPoll&&e&&e.p)return e.p.then(mk);'+
+ 'var bp;if(init.body!=null){var rq=new Request("http://x/",{method:"POST",body:init.body});bp=rq.arrayBuffer().then(function(ab){return{b:new Uint8Array(ab),ct:rq.headers.get("content-type")||""};});}else bp=Promise.resolve({b:null,ct:""});'+
+ 'var base=url.split("?")[0],g=method==="GET"&&gap[base],w=0;if(g){var now=Date.now(),at=Math.max(now,nextAt[base]||0);w=at-now;nextAt[base]=at+g;}'+
+ 'var p=bp.then(function(x){return w?new Promise(function(ok){setTimeout(ok,w);}).then(function(){return x;}):x;}).then(function(x){return P.fetch(method,url,x.ct,x.b);});'+
+ 'if(isPoll){e=cache[url]||(cache[url]={});e.p=p;p.then(function(r){e.t=Date.now();e.r=r;e.p=null;},function(){e.p=null;});}'+
+ 'return p.then(mk,function(m){throw new TypeError(String(m));});};'+
+ 'document.addEventListener("click",function(ev){var a=ev.target&&ev.target.closest&&ev.target.closest("a[href]");if(!a)return;var h=a.getAttribute("href");if(!h||h.charAt(0)!=="/")return;'+
+ 'ev.preventDefault();var fn=a.getAttribute("download")||"download";P.toast("מוריד "+fn+"…");'+
+ 'fetch(h).then(function(r){if(!r.ok)return r.text().then(function(t){throw t;});return r.blob();}).then(function(b){P.save(b,fn);})'+
+ '.catch(function(err){P.toast("ההורדה נכשלה: "+err,"err");});},true);'+
+ 'document.addEventListener("submit",function(ev){ev.preventDefault();ev.stopPropagation();P.toast("עדכון תוכנה זמין רק ברשת המקומית","err");},true);'+
+ '["pointerdown","keydown","wheel","touchstart"].forEach(function(t){document.addEventListener(t,function(){P.activity();},{passive:true,capture:true});});'+
+ '})();<\/script>';
+
+// ---------- טעינת הדף ----------
+function showErr(t,b,h){$('msT').textContent=t;$('msB').textContent=b;$('msH').textContent=h||'';ov('ovMsg');}
+function ld(t,s,p){$('ldT').textContent=t;$('ldS').textContent=s||'';$('ldP').style.display=p==null?'none':'';if(p!=null)$('ldPi').style.width=Math.round(p*100)+'%';ov('ovLoad');}
+function loadPage(){
+ ld('טוען את ממשק הלוח…','הדף נשלח מהלוח דרך שרת ה-MQTT',0);
+ return tfetch('GET','/',null,null,function(f){ld('טוען את ממשק הלוח…','הדף נשלח מהלוח דרך שרת ה-MQTT',f);}).then(function(r){
+  if(r.status===401){openSetup('סיסמת הממשק שגויה');return;}
+  if(r.status!==200){var t=dec.decode(r.body);
+   if(r.tunErr)showErr('הלוח לא מאפשר גישה מרחוק',t,r.status===429?'נסה שוב בעוד כמה דקות.':(r.status===403?'את ההגדרה הזו משנים ברשת המקומית, במסך ההגדרות של הלוח.':''));
+   else showErr('הלוח החזיר שגיאה',r.status+' '+t,'');return;}
+  var html=dec.decode(r.body),i=html.search(/<head[^>]*>/i);
+  if(i<0){showErr('תשובה לא צפויה מהלוח','הדף שהתקבל לא נראה כמו ממשק הלוח','');return;}
+  var e=html.indexOf('>',i)+1;
+  $('frame').srcdoc=html.slice(0,e)+SHIM+html.slice(e);
+  loaded=true;lastAct=Date.now();ov(null);
+ });
+}
+function start(){loadCfg();
+ if(!cfg.host||!cfg.pass||!auth.p){openSetup();return;}
+ idle=false;ld('מתחבר לשרת ה-MQTT…','',null);
+ connect().then(loadPage).catch(function(e){showErr('לא ניתן להתחבר',String(e),'');});}
+function retry(){if(client&&client.connected)loadPage().catch(function(e){showErr('לא ניתן להתחבר',String(e),'');});else start();}
+function reloadPage(){if(!loaded){retry();return;}if(idle){resume();return;}loadPage().catch(function(e){showErr('לא ניתן לטעון',String(e),'');});}
+
+// ---------- שם המכשיר וצבע הרקע לפי הדף של הלוח ----------
+// הרקע של הדף (למשל במצב כהה) נמשך גם לשוליים של ה-notch ופס הבית, כדי שלא יופיעו פסים בהירים
+var lastBg='';
+function syncFrame(){try{var w=$('frame').contentWindow,d=w.document,t=d.title;
+ if(t&&t!==$('bName').textContent){$('bName').textContent=t;document.title=t+' · מרחוק';}
+ if(!d.body)return;var bg=w.getComputedStyle(d.body).backgroundColor;
+ if(!bg||bg==='transparent'||bg==='rgba(0, 0, 0, 0)')bg=w.getComputedStyle(d.documentElement).backgroundColor;
+ if(bg&&bg!=='transparent'&&bg!=='rgba(0, 0, 0, 0)'&&bg!==lastBg){lastBg=bg;document.documentElement.style.setProperty('--fbg',bg);}}catch(x){}}
+$('frame').addEventListener('load',function(){syncFrame();setTimeout(syncFrame,400);});
+setInterval(syncFrame,2000);
+
+// ---------- אתחול ----------
+(function(){var hc=hashCfg();if(hc){var c=loadCfgRaw();c.host=hc.host;c.port=hc.port;c.user=hc.user;c.pass=hc.pass;
+ try{localStorage.setItem('kinetRemote',JSON.stringify(c));}catch(e){}}})();
+start();
+</script>
+</body>
+</html>
