@@ -133,6 +133,7 @@ details summary{cursor:pointer;font-weight:600;min-height:32px;font-size:14px}
     <label class="f" style="flex:1">משתמש<input class="in" id="fUser" value="admin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
    </div>
    <label class="f">סיסמת שרת<input class="in" type="password" id="fPass" autocomplete="off"></label>
+   <label class="f">מזהה לוח (ריק אם יש לוח אחד בלבד)<input class="in ltr" id="fDev" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="למשל lobby"></label>
   </div>
  </details>
  <div class="msg err" id="fErr" style="display:none"></div>
@@ -149,7 +150,7 @@ details summary{cursor:pointer;font-weight:600;min-height:32px;font-size:14px}
    קובץ אחד לכל המכשירים: מחשב, אייפון/אייפד ואנדרואיד —
    safe-area, שמירת קבצים דרך גיליון השיתוף, וחיבור מחדש אחרי רקע/נעילת מסך.
    ===================================================================== */
-var REQ_T='kinet/http/req', RES_P='kinet/http/res/', CHUNK=12288, WIN=4;
+var REQ_T='kinet/http/req', RES_P='kinet/http/res/', CHUNK=12288, WIN=4;   // נקבעים מחדש בכל חיבור לפי מזהה הלוח (v2.53)
 var POLL_MS=3000, IDLE_MS=10*60*1000, STEP_TO=15000, DOWN_TO=20000, RESUME_MS=8000;
 var BLOCKED=/^\/(update|sdformat|rollback)(\?|$)/;
 var cfg={}, auth={u:'admin',p:''}, client=null, cid='', rid=0, Q=[], cur=null;
@@ -189,15 +190,18 @@ function b64(s){return btoa(unescape(encodeURIComponent(s)));}
 function goBack(){if(history.length>1&&document.referrer&&document.referrer.indexOf(location.host)>=0)history.back();else location.href='admin.html';}
 
 // ---------- פרטי חיבור ----------
-// אפשר לפתוח גם מקישור/QR של הלוח: #h=<ברוקר>&p=<פורט WSS>&u=<משתמש>&k=<סיסמה>
+// v2.53: מזהה לוח — כמה לוחות על אותו ברוקר. ריק = הנושאים הישנים (kinet/cmd), אחרת kinet/<מזהה>/cmd
+function TP(s){var d=(cfg&&cfg.dev)||'';return 'kinet/'+(d?d+'/':'')+s;}
+function devClean(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,32);}
+// אפשר לפתוח גם מקישור/QR של הלוח: #h=<ברוקר>&p=<פורט WSS>&u=<משתמש>&k=<סיסמה>&d=<מזהה לוח>
 function hashCfg(){var h=(location.hash||'').replace(/^#/,'');if(h.indexOf('h=')<0)return null;
  var o={};h.split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0){try{o[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1));}catch(e){}}});
  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
- if(!o.h)return null;return {host:o.h,port:o.p||'8084',user:o.u||'',pass:o.k||''};}
+ if(!o.h)return null;return {host:o.h,port:o.p||'8084',user:o.u||'',pass:o.k||'',dev:devClean(o.d)};}
 function loadCfg(){try{cfg=JSON.parse(localStorage.getItem('kinetRemote')||'{}');}catch(e){cfg={};}
  try{auth=JSON.parse(sessionStorage.getItem('kinetWebAuth')||localStorage.getItem('kinetWebAuth')||'null')||{u:'admin',p:''};}catch(e){auth={u:'admin',p:''};}}
 function openSetup(err){loadCfg();
- if(cfg.host)$('fHost').value=cfg.host;if(cfg.port)$('fPort').value=cfg.port;if(cfg.user)$('fUser').value=cfg.user;if(cfg.pass)$('fPass').value=cfg.pass;
+ if(cfg.host)$('fHost').value=cfg.host;if(cfg.port)$('fPort').value=cfg.port;if(cfg.user)$('fUser').value=cfg.user;if(cfg.pass)$('fPass').value=cfg.pass;$('fDev').value=cfg.dev||'';
  $('fWU').value=auth.u||'admin';$('fWP').value=auth.p||'';var rem=false;try{rem=!!localStorage.getItem('kinetWebAuth');}catch(e){}$('fRem').checked=rem;
  $('fErr').style.display=err?'':'none';$('fErr').textContent=err||'';
  if(!$('fPass').value)$('ovSetup').querySelector('details').open=true;
@@ -205,7 +209,7 @@ function openSetup(err){loadCfg();
  // בטלפון לא מקפיצים מקלדת לבד — היא מכסה חצי מסך לפני שהמשתמש ראה מה כתוב
  if(!MOBILE)setTimeout(function(){(err&&/סיסמ/.test(err)?$('fWP'):(!$('fWP').value?$('fWP'):null))&&$('fWP').focus();},60);}
 function saveSetup(){
- var c=loadCfgRaw();c.host=$('fHost').value.trim();c.port=$('fPort').value.trim()||'8084';c.user=$('fUser').value.trim();c.pass=$('fPass').value;
+ var c=loadCfgRaw();c.host=$('fHost').value.trim();c.port=$('fPort').value.trim()||'8084';c.user=$('fUser').value.trim();c.pass=$('fPass').value;c.dev=devClean($('fDev').value);
  if(!c.host||!c.pass){$('fErr').style.display='';$('fErr').textContent='חסרים פרטי שרת ה-MQTT';$('ovSetup').querySelector('details').open=true;return;}
  if(!$('fWP').value){$('fErr').style.display='';$('fErr').textContent='חסרה סיסמת הממשק';return;}
  try{localStorage.setItem('kinetRemote',JSON.stringify(c));}catch(e){}
@@ -226,12 +230,13 @@ function connect(){return new Promise(function(res,rej){
  cid=Math.random().toString(36).slice(2,12).replace(/[^a-z0-9]/g,'x');
  var url=/^wss?:\/\//.test(cfg.host)?cfg.host:('wss://'+cfg.host+':'+(cfg.port||'8084')+'/mqtt');
  var done=false, myCid=cid, me;
+ REQ_T=TP('http/req');RES_P=TP('http/res/');
  // keepalive קצר: בטלפון שחזר מהרקע, חיבור מת מתגלה תוך עשרות שניות ולא דקה וחצי
  try{me=mqtt.connect(url,{username:cfg.user,password:cfg.pass,clientId:'kinet-remote-'+myCid,clean:true,reconnectPeriod:3000,connectTimeout:10000,keepalive:20});}
  catch(e){conn('err','שגיאה');rej('כתובת שרת ה-MQTT לא תקינה: '+(e&&e.message||e));return;}
  client=me;
  me.on('connect',function(){if(me!==client)return;
-  me.subscribe([RES_P+myCid,'kinet/status'],{qos:0},function(){if(me!==client)return;
+  me.subscribe([RES_P+myCid,TP('status')],{qos:0},function(){if(me!==client)return;
    downAt=0;conn('ok','מחובר');if(!done){done=true;res();}pump();});});
  me.on('reconnect',function(){if(me===client)conn('warn','מתחבר מחדש…');});
  me.on('close',function(){if(me!==client)return;conn('err',idle?'מושהה':'מנותק');if(!downAt)downAt=Date.now();if(cur)cur.drop();});
@@ -242,7 +247,7 @@ function connect(){return new Promise(function(res,rej){
 });}
 function onMsg(topic,payload){
  if(!B&&payload&&payload.constructor&&payload.constructor.from)B=payload.constructor;
- if(topic==='kinet/status'){try{var d=JSON.parse(payload.toString());if(d&&d.mode)$('bName').dataset.mode=d.mode;}catch(e){}return;}
+ if(topic===TP('status')){try{var d=JSON.parse(payload.toString());if(d&&d.mode)$('bName').dataset.mode=d.mode;}catch(e){}return;}
  if(topic!==RES_P+cid)return;
  var p=u8(payload);bytesIn+=p.length;meta();
  var nl=p.indexOf(10);if(nl<0)return;
@@ -405,7 +410,7 @@ $('frame').addEventListener('load',function(){syncFrame();setTimeout(syncFrame,4
 setInterval(syncFrame,2000);
 
 // ---------- אתחול ----------
-(function(){var hc=hashCfg();if(hc){var c=loadCfgRaw();c.host=hc.host;c.port=hc.port;c.user=hc.user;c.pass=hc.pass;
+(function(){var hc=hashCfg();if(hc){var c=loadCfgRaw();c.host=hc.host;c.port=hc.port;c.user=hc.user;c.pass=hc.pass;c.dev=hc.dev;
  try{localStorage.setItem('kinetRemote',JSON.stringify(c));}catch(e){}}})();
 start();
 </script>

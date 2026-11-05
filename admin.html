@@ -509,6 +509,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
       <div><label for="fUser">שם משתמש</label><input type="text" id="fUser" value="admin" dir="ltr" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     </div>
     <label for="fPass">סיסמה</label><input type="password" id="fPass" value="" autocomplete="off">
+    <label for="fDev">מזהה לוח <span style="font-weight:400;opacity:.7">(ריק אם יש לוח אחד בלבד)</span></label><input type="text" id="fDev" value="" dir="ltr" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="למשל lobby">
     <button class="btn accent" style="margin-top:16px" onclick="saveConnect()">התחבר</button>
     <button class="mini" style="display:block;margin:12px auto 0" onclick="closeSetup()">ביטול</button>
   </div>
@@ -608,22 +609,26 @@ function renderDbg(){
 }
 
 // ----- חיבור -----
+// v2.53: מזהה לוח — כמה לוחות על אותו ברוקר. ריק = הנושאים הישנים (kinet/cmd), אחרת kinet/<מזהה>/cmd
+function TP(s){var d=(cfg&&cfg.dev)||'';return 'kinet/'+(d?d+'/':'')+s;}
+function devClean(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,32);}
 function loadCfg(){try{return JSON.parse(localStorage.getItem('kinetRemote')||'{}')}catch(e){return{}}}
-// פרטי חיבור מתוך הקישור/QR שהלוח יוצר: #h=<ברוקר>&p=<פורט WSS>&u=<משתמש>&k=<סיסמה>
+// פרטי חיבור מתוך הקישור/QR שהלוח יוצר: #h=<ברוקר>&p=<פורט WSS>&u=<משתמש>&k=<סיסמה>&d=<מזהה לוח>
 // נשמרים בטלפון, והקישור מנוקה מיד מהכתובת כדי שהסיסמה לא תישאר גלויה בשורת הכתובת.
 function hashCfg(){var h=(location.hash||'').replace(/^#/,'');if(h.indexOf('h=')<0)return null;
   var o={};h.split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0){try{o[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1));}catch(e){}}});
   try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
   if(!o.h)return null;
-  return {host:o.h,port:o.p||'8084',user:o.u||'',pass:o.k||''};}
+  return {host:o.h,port:o.p||'8084',user:o.u||'',pass:o.k||'',dev:devClean(o.d)};}
 function openSetup(){var c=loadCfg();if(c.host)$('fHost').value=c.host;if(c.port)$('fPort').value=c.port;
-  if(c.user)$('fUser').value=c.user;if(c.pass)$('fPass').value=c.pass;
+  if(c.user)$('fUser').value=c.user;if(c.pass)$('fPass').value=c.pass;$('fDev').value=c.dev||'';
   $('saNote').style.display=(STANDALONE&&!c.pass)?'':'none';
   $('setup').style.display='flex';}
 function closeSetup(){$('setup').style.display='none';}
-function saveConnect(){cfg={host:$('fHost').value.trim(),port:$('fPort').value.trim()||'8084',user:$('fUser').value.trim(),pass:$('fPass').value};
+function saveConnect(){cfg={host:$('fHost').value.trim(),port:$('fPort').value.trim()||'8084',user:$('fUser').value.trim(),pass:$('fPass').value,dev:devClean($('fDev').value)};
   try{localStorage.setItem('kinetRemote',JSON.stringify(cfg))}catch(e){}
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();   // סוגר את המקלדת בטלפון
+  authLoadMe();authRefreshUi();
   closeSetup();connect();}
 // כל לקוח בודק שהוא עדיין ה-client הנוכחי, כדי שאירועים של חיבור ישן לא ידרסו את החדש
 var connTok=0;
@@ -645,7 +650,7 @@ function connect(){
     client=me;
     me.on('connect',function(){if(me!==client)return;setDot('ok','מחובר');
       authOnConnect();
-      me.subscribe(['kinet/scenes','kinet/status','kinet/alert','kinet/sched','kinet/rdm','kinet/pl','kinet/users','kinet/auth']);
+      me.subscribe([TP('scenes'),TP('status'),TP('alert'),TP('sched'),TP('rdm'),TP('pl'),TP('users'),TP('auth')]);
       if(UI.last=='rdm')rdmGet(false);
       pushTime();
       refreshScenes();loadSched(false);renderDbg();});
@@ -692,14 +697,14 @@ function instDone(loud){INST=false;try{history.replaceState(null,'',location.pat
 
 function onMsg(topic,payload){
   var msg=payload.toString();
-  if(topic==='kinet/users'){authUsers(msg);return;}
-  if(topic==='kinet/auth'){authReply(msg);return;}
-  if(topic==='kinet/scenes'){ renderScenes(msg); }
-  else if(topic==='kinet/status'){ lastStatusRaw=msg;lastStatusAt=Date.now();try{updateStatus(JSON.parse(msg))}catch(e){}renderDbg(); }
-  else if(topic==='kinet/sched'){ lastSchedRaw=msg; try{renderSched(JSON.parse(msg))}catch(e){} renderDbg(); }
-  else if(topic==='kinet/alert'){ toast(msg); }
-  else if(topic==='kinet/pl'){ try{PLL=JSON.parse(msg)||[];}catch(e){PLL=[];} renderPl(); refreshSceneSelects(); }
-  else if(topic==='kinet/rdm'){ try{RD.d=JSON.parse(msg);RD.at=Date.now();rdmDraw(false);}catch(e){} }
+  if(topic===TP('users')){authUsers(msg);return;}
+  if(topic===TP('auth')){authReply(msg);return;}
+  if(topic===TP('scenes')){ renderScenes(msg); }
+  else if(topic===TP('status')){ lastStatusRaw=msg;lastStatusAt=Date.now();try{updateStatus(JSON.parse(msg))}catch(e){}renderDbg(); }
+  else if(topic===TP('sched')){ lastSchedRaw=msg; try{renderSched(JSON.parse(msg))}catch(e){} renderDbg(); }
+  else if(topic===TP('alert')){ toast(msg); }
+  else if(topic===TP('pl')){ try{PLL=JSON.parse(msg)||[];}catch(e){PLL=[];} renderPl(); refreshSceneSelects(); }
+  else if(topic===TP('rdm')){ try{RD.d=JSON.parse(msg);RD.at=Date.now();rdmDraw(false);}catch(e){} }
 }
 
 // ----- סטטוס + אישור צבע -----
@@ -1214,15 +1219,18 @@ function hmac16(key,msg){var k=u8(key),i;if(k.length>64)k=sha256(k);while(k.leng
 
 var TAB_BIT={now:0,scenes:1,sched:2,test:3,fix:4,rdm:5,inputs:6,out:7,clock:8,diag:9};
 var AUTH=(function(){var a={known:false,need:false,list:[],me:null,m:1023,q:[],last:0,pend:null,kt:null};
- try{var s=JSON.parse(localStorage.getItem('kinetAuth')||'null');if(s&&s.u&&s.c)a.me=s;}catch(e){}return a;})();
+ return a;})();
+// כניסת המשתמש נשמרת לכל לוח בנפרד (v2.53)
+function AKEY(){var d=(cfg&&cfg.dev)||'';return 'kinetAuth'+(d?'@'+d:'');}
+function authLoadMe(){AUTH.me=null;try{var s=JSON.parse(localStorage.getItem(AKEY())||'null');if(s&&s.u&&s.c)AUTH.me=s;}catch(e){}}
 function permOk(id){if(id=='view'||!AUTH.need)return true;var b=TAB_BIT[id];return b==null?true:!!((AUTH.m>>b)&1);}
 var _visTabs=visTabs;visTabs=function(){return _visTabs().filter(permOk);};
-function authSave(){try{if(AUTH.me)localStorage.setItem('kinetAuth',JSON.stringify(AUTH.me));else localStorage.removeItem('kinetAuth');}catch(e){}}
+function authSave(){try{if(AUTH.me)localStorage.setItem(AKEY(),JSON.stringify(AUTH.me));else localStorage.removeItem(AKEY());}catch(e){}}
 function authRefreshUi(){buildRail();showTab(curTab(),true);uiDraw();
  var w=$('whoCard');if(w){w.style.display=AUTH.need&&AUTH.me?'':'none';$('whoName').textContent=AUTH.me?AUTH.me.u:'';}
  var ob=$('outb');if(ob){ob.style.display=AUTH.need&&AUTH.me?'':'none';ob.title=AUTH.me?'מחובר כ-'+AUTH.me.u:'';}}
 function authOutAsk(){if(!AUTH.me)return;if(confirm('להתנתק מהשלט? בכניסה הבאה יצטרכו שם וקוד.'))authLogout('התנתקת. כדי להמשיך צריך שם וקוד.');}
-function authRaw(p){if(client)client.publish('kinet/cmd',p);}
+function authRaw(p){if(client)client.publish(TP('cmd'),p);}
 function authSign(p,me){var ts=Math.max(Date.now(),AUTH.last+1);AUTH.last=ts;
  return {ts:String(ts),txt:'@'+me.u+'|'+ts+'|'+hmac16(me.c,me.u+'|'+ts+'|'+p)+'|'+p};}
 // לפני שידוע אם יש משתמשים — הפקודות ממתינות (עד 2.5 שנ׳; לוח ישן בלי kinet/users = בלי משתמשים)
@@ -1286,6 +1294,7 @@ gfDraw();
 var hc=hashCfg();
 if(hc){cfg=hc;try{localStorage.setItem('kinetRemote',JSON.stringify(cfg))}catch(e){}setTimeout(function(){toast('פרטי החיבור נשמרו בטלפון');},300);}
 else cfg=loadCfg();
+authLoadMe();
 if(cfg.host&&cfg.pass){connect();}else{openSetup();}
 renderDbg();
 </script>
