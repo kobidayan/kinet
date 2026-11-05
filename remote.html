@@ -191,7 +191,9 @@ function goBack(){if(history.length>1&&document.referrer&&document.referrer.inde
 
 // ---------- פרטי חיבור ----------
 // v2.53: מזהה לוח — כמה לוחות על אותו ברוקר. ריק = הנושאים הישנים (kinet/cmd), אחרת kinet/<מזהה>/cmd
-function TP(s){var d=(cfg&&cfg.dev)||'';return 'kinet/'+(d?d+'/':'')+s;}
+function TP(s){var d=(cfg&&cfg.dev)||'';if(!d)return 'kinet/'+s;   // v2.57: in/ = לוח, out/ = טלפונים, res/ = תשובות מנהרה
+ if(s==='cmd')return 'kinet/'+d+'/in/cmd';if(s==='http/req')return 'kinet/'+d+'/in/http';if(s==='http/res/')return 'kinet/'+d+'/res/';
+ return 'kinet/'+d+'/out/'+s;}
 function devClean(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,32);}
 // אפשר לפתוח גם מקישור/QR של הלוח: #h=<ברוקר>&p=<פורט WSS>&u=<משתמש>&k=<סיסמה>&d=<מזהה לוח>
 function hashCfg(){var h=(location.hash||'').replace(/^#/,'');if(h.indexOf('h=')<0)return null;
@@ -227,12 +229,12 @@ function connect(){return new Promise(function(res,rej){
  conn('warn','מתחבר…');
  needMqtt(function(ok){
  if(!ok){conn('err','שגיאה');rej('לא ניתן לטעון את רכיב החיבור (mqtt.js) — בדוק את החיבור לאינטרנט, או כבה חוסם תוכן בדפדפן');return;}
- cid=Math.random().toString(36).slice(2,12).replace(/[^a-z0-9]/g,'x');
+ cid='kr'+Math.random().toString(36).slice(2,12).replace(/[^a-z0-9]/g,'x');   // v2.57: גם מזהה הלקוח בברוקר — התשובות מגיעות רק אליו
  var url=/^wss?:\/\//.test(cfg.host)?cfg.host:('wss://'+cfg.host+':'+(cfg.port||'8084')+'/mqtt');
  var done=false, myCid=cid, me;
  REQ_T=TP('http/req');RES_P=TP('http/res/');
  // keepalive קצר: בטלפון שחזר מהרקע, חיבור מת מתגלה תוך עשרות שניות ולא דקה וחצי
- try{me=mqtt.connect(url,{username:cfg.user,password:cfg.pass,clientId:'kinet-remote-'+myCid,clean:true,reconnectPeriod:3000,connectTimeout:10000,keepalive:20});}
+ try{me=mqtt.connect(url,{username:cfg.user,password:cfg.pass,clientId:myCid,clean:true,reconnectPeriod:3000,connectTimeout:10000,keepalive:20});}
  catch(e){conn('err','שגיאה');rej('כתובת שרת ה-MQTT לא תקינה: '+(e&&e.message||e));return;}
  client=me;
  me.on('connect',function(){if(me!==client)return;

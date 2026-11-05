@@ -378,7 +378,9 @@ function needMqtt(cb){if(window.mqtt){cb(true);return;}mqW.push(cb);if(mqBusy)re
 
 // ----- חיבור -----
 // v2.53: מזהה לוח — כמה לוחות על אותו ברוקר. ריק = הנושאים הישנים (kinet/cmd), אחרת kinet/<מזהה>/cmd
-function TP(s){var d=(cfg&&cfg.dev)||'';return 'kinet/'+(d?d+'/':'')+s;}
+function TP(s){var d=(cfg&&cfg.dev)||'';if(!d)return 'kinet/'+s;   // v2.57: in/ = לוח, out/ = טלפונים, res/ = תשובות מנהרה
+ if(s==='cmd')return 'kinet/'+d+'/in/cmd';if(s==='http/req')return 'kinet/'+d+'/in/http';if(s==='http/res/')return 'kinet/'+d+'/res/';
+ return 'kinet/'+d+'/out/'+s;}
 function devClean(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,32);}
 function loadCfg(){try{return JSON.parse(localStorage.getItem('kinetRemote')||'{}')}catch(e){return{}}}
 // פרטי חיבור מתוך הקישור/QR שהלוח יוצר: #h=<ברוקר>&p=<פורט WSS>&u=<משתמש>&k=<סיסמה>&d=<מזהה לוח>
@@ -457,7 +459,7 @@ function instInit(){var c=$('instCard');if(!c)return;if(!MOBILE||STANDALONE){c.s
    ?'באייפון, אפליקציה ממסך הבית שומרת נתונים בנפרד מספארי, ולכן צריך להכין את הקישור לפני ההוספה. לחץ <b>הכן קישור</b>, ואז בספארי: כפתור השיתוף <b>⬆︎</b> › <b>הוסף למסך הבית</b>. בפתיחה הראשונה מהאייקון נכנסים שוב עם שם וקוד.'
    :'לחץ <b>הכן קישור</b>, ואז בכרום: תפריט <b>⋮</b> › <b>הוסף למסך הבית</b>.';}
 function instPrep(){var c=loadCfg();if(!c.host||!c.pass){toast('קודם צריך להתחבר לברוקר');return;}
-  var h='#h='+encodeURIComponent(c.host)+'&p='+encodeURIComponent(c.port||'8084')+'&u='+encodeURIComponent(c.user||'')+'&k='+encodeURIComponent(c.pass);
+  var h='#h='+encodeURIComponent(c.host)+'&p='+encodeURIComponent(c.port||'8084')+'&u='+encodeURIComponent(c.user||'')+'&k='+encodeURIComponent(c.pass)+(c.dev?'&d='+encodeURIComponent(c.dev):'');
   try{history.replaceState(null,'',location.pathname+location.search+h);}catch(e){}
   INST=true;$('instDoneB').style.display='';
   toast(IOS?'עכשיו: שיתוף ⬆︎ › הוסף למסך הבית':'עכשיו: תפריט ⋮ › הוסף למסך הבית');}
@@ -879,7 +881,7 @@ function authLogin(){var u=$('lUser').value,c=$('lCode').value.trim();
  if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
  authRaw(s.txt);
  setTimeout(function(){if(AUTH.pend&&AUTH.pend.ts===s.ts){AUTH.pend=null;$('lBtn').disabled=false;$('lErr').textContent='הלוח לא ענה. בדוק שהוא מחובר ובגרסה v2.43 ומעלה.';}},6000);}
-var AUTH_ERR={code:'הקוד שגוי',user:'אין משתמש כזה',time:'השעון בטלפון לא מכוון — כוון תאריך ושעה אוטומטיים'};
+var AUTH_ERR={lock:'יותר מדי ניסיונות שגויים — נסה שוב בעוד 15 דקות',code:'הקוד שגוי',user:'אין משתמש כזה',time:'השעון בטלפון לא מכוון — כוון תאריך ושעה אוטומטיים'};
 function authReply(msg){var o;try{o=JSON.parse(msg);}catch(e){return;}
  var p=AUTH.pend;
  if(p&&o.u===p.u&&String(o.ts)===p.ts){AUTH.pend=null;$('lBtn').disabled=false;
