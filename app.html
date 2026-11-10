@@ -61,6 +61,17 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
   .tab .bdg{position:absolute;top:6px;left:10px;width:9px;height:9px;border-radius:50%;background:var(--warn);display:none}
   .content{flex:1;min-width:0;padding:16px 12px calc(40px + env(safe-area-inset-bottom));padding-left:max(12px,env(safe-area-inset-left))}
   .pane{display:none;max-width:640px;margin:0 auto}
+  /* v2.60: מסך פשוט למשתמש שמותר לו רק "עכשיו" ו"תרחישים" — בלי לשוניות, הכול במסך אחד, כפתורים גדולים */
+  body.simple .rail{display:none}
+  body.simple #p-now,body.simple #p-scenes{display:block;animation:none}
+  body.simple #p-now .card:nth-of-type(2){display:none}
+  body.simple #p-scenes .row,body.simple #p-scenes .note,body.simple #p-now .note{display:none}
+  body.simple #p-scenes .card:first-child h2{display:none}
+  body.simple .scenes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  body.simple .scenes>*{min-height:88px;font-size:19px}
+  body.simple .simpleBar{display:flex}
+  .simpleBar{display:none;gap:10px;margin:14px 0 4px}
+  .simpleBar .btn{flex:1;min-height:60px;font-size:18px}
   .pane.on{display:block;animation:fin .16s ease-out}
   @keyframes fin{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
   .ptitle{font-size:22px;font-weight:800;margin:2px 2px 12px}
@@ -162,6 +173,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
   /* חלוניות: נגללות כשהמקלדת פתוחה, ומכבדות notch ופס בית */
   #setup{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;
     padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));z-index:10}
+  #setup details{margin-top:14px}#setup summary{cursor:pointer;font-weight:700;min-height:36px;color:var(--dim)}
   #setup .box{margin:auto;background:var(--card);border-radius:18px;padding:22px;max-width:420px;width:100%;box-shadow:var(--shadow)}
   #login{position:fixed;inset:0;background:var(--bg);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;
     padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));z-index:9}
@@ -271,6 +283,14 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     </div>
     <div class="note"><b>עצור</b> משאיר את התאורה במצב האחרון; <b>כבה</b> מכבה לגמרי. בחירת תרחיש — בלשונית ״תרחישים״.</div>
   </div>
+  <!-- v2.61: חייב להישאר הכרטיס השלישי ב-p-now (המסך הפשוט מסתיר את השני) -->
+  <div class="card" id="instCard" style="display:none">
+    <h2>📲 השלט על מסך הבית</h2>
+    <div id="instTxt" style="font-size:15px;line-height:1.5;color:var(--dim)"></div>
+    <button class="btn accent" type="button" id="instGo" style="margin-top:12px" onclick="instPrep()">הוסף למסך הבית</button>
+    <button class="btn gray" type="button" id="instDoneB" style="display:none;margin-top:10px" onclick="instDone(true)">סיימתי</button>
+    <button class="mini" type="button" style="display:block;margin:10px auto 0" onclick="instHide()">לא עכשיו</button>
+  </div>
 </section>
 
 <section class="pane" id="p-scenes" role="tabpanel" aria-label="תרחישים">
@@ -280,6 +300,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     </h2>
     <div class="durs" id="durs" style="display:none"><span>להדליק:</span><button type="button" data-m="0" class="on" onclick="setDur(0)">עד שמשנים</button><button type="button" data-m="60" onclick="setDur(60)">לשעה</button><button type="button" data-m="120" onclick="setDur(120)">לשעתיים</button><button type="button" data-m="240" onclick="setDur(240)">ל-4 שעות</button></div>
     <div class="scenes" id="scenes"><div class="empty">מתחבר…</div></div>
+    <div class="simpleBar"><button class="btn gray" onclick="stopPlay()">עצור</button><button class="btn rec" onclick="allOff()">כבה הכול</button></div>
     <div class="row" style="margin-top:12px">
       <button class="btn" onclick="stepScene('PREV')" aria-label="התרחיש הקודם">‹ הקודם</button>
       <button class="btn" onclick="stepScene('NEXT')" aria-label="התרחיש הבא">הבא ›</button>
@@ -302,7 +323,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
   <div class="card">
     <h2>זיהוי גוף וצבע</h2>
     <div class="grid2">
-      <div><label for="tUni">יוניברס (0–9)</label><input type="number" id="tUni" value="0" min="0" max="9" inputmode="numeric"></div>
+      <div><label for="tUni">יוניברס (0–255)</label><input type="number" id="tUni" value="0" min="0" max="255" inputmode="numeric"></div>
       <div><label for="tCh">ערוץ התחלה</label><input type="number" id="tCh" value="1" min="1" inputmode="numeric"></div>
     </div>
     <label for="tChEnd">ערוץ סיום (לטווח של כמה גופים)</label><input type="number" id="tChEnd" value="4" min="1" inputmode="numeric">
@@ -483,15 +504,9 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     <div class="note" style="margin:0 0 10px">סמן אילו לשוניות יופיעו בצד, וסדר אותן בחצים — הסדר כאן הוא הסדר בצד. לשונית שהוסתרה ממשיכה לעבוד ברקע; היא פשוט לא מוצגת.</div>
     <div class="tlist" id="uiTabs"></div>
   </div>
-  <div class="card" id="instCard" style="display:none">
-    <h2>הוספה למסך הבית</h2>
-    <div class="note" id="instTxt" style="margin-top:0"></div>
-    <button class="btn accent" type="button" style="margin-top:12px" onclick="instPrep()">הכן קישור להוספה</button>
-    <button class="btn gray" type="button" id="instDoneB" style="display:none;margin-top:10px" onclick="instDone(true)">סיימתי</button>
-  </div>
   <div class="card">
     <h2>חיבור</h2>
-    <button class="btn gray" type="button" onclick="openSetup()">פרטי החיבור לברוקר</button>
+    <button class="btn gray" type="button" onclick="openSetup()">פרטי חיבור (לטכנאי)</button>
     <div class="note">ההגדרות בלשונית הזאת נשמרות בטלפון הזה בלבד — לא בלוח ולא בטלפונים אחרים.</div>
   </div>
 </section>
@@ -501,8 +516,11 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
 <!-- מסך חיבור -->
 <div id="setup">
   <div class="box">
-    <h2 style="margin-bottom:6px">חיבור לברוקר</h2>
-    <div class="note" id="saNote" style="display:none;margin-top:0">זו אפליקציה ממסך הבית, ובאייפון היא לא רואה את מה ששמור בספארי. הקלד כאן את פרטי החיבור פעם אחת — או מחק את האייקון, פתח את קישור ה-QR בספארי, והוסף מחדש דרך לשונית ״תצוגה״ › ״הוספה למסך הבית״.</div>
+    <div id="sNew">
+      <h2 style="margin-bottom:6px">השלט עוד לא מחובר</h2>
+      <div class="note" style="margin-top:0">פותחים את הקישור מההזמנה שקיבלת (במייל או בהודעה). השלט מתחבר לבד, ואז מקלידים את הקוד האישי — רק בפעם הראשונה.<span id="saNote" style="display:none"><br><br>באייפון, האייקון שעל מסך הבית לא רואה את מה ששמור בספארי: מחק את האייקון, פתח שוב את ההזמנה בספארי, ושם לחץ ״הוסף למסך הבית״ שבשלט.</span></div>
+    </div>
+    <details id="sAdv"><summary>פרטי חיבור (לטכנאי)</summary>
     <label for="fHost">כתובת ברוקר</label><input type="text" id="fHost" value="u7ced2cc.ala.eu-central-1.emqxsl.com" dir="ltr" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="url">
     <div class="grid2">
       <div><label for="fPort">פורט (WSS)</label><input type="number" id="fPort" value="8084" inputmode="numeric"></div>
@@ -511,16 +529,17 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     <label for="fPass">סיסמה</label><input type="password" id="fPass" value="" autocomplete="off">
     <label for="fDev">מזהה לוח <span style="font-weight:400;opacity:.7">(ריק אם יש לוח אחד בלבד)</span></label><input type="text" id="fDev" value="" dir="ltr" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="למשל lobby">
     <button class="btn accent" style="margin-top:16px" onclick="saveConnect()">התחבר</button>
-    <button class="mini" style="display:block;margin:12px auto 0" onclick="closeSetup()">ביטול</button>
+    </details>
+    <button class="mini" style="display:block;margin:12px auto 0" onclick="closeSetup()">סגור</button>
   </div>
 </div>
 
 <div id="login" role="dialog" aria-modal="true" aria-labelledby="lTitle">
   <div class="box">
     <h2 id="lTitle" style="margin-bottom:4px">כניסה לשלט</h2>
-    <div class="note" id="lNote" style="margin-top:0">בחר את השם שלך והקלד את הקוד שקיבלת.</div>
+    <div class="note" id="lNote" style="margin-top:0">בחר את השם שלך והקלד את הקוד האישי שקיבלת.</div>
     <div id="lUserW"><label for="lUser">שם</label><select id="lUser"></select></div>
-    <label for="lCode" id="lCodeL">קוד</label><input type="password" id="lCode" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="16" style="font-size:24px;letter-spacing:6px;text-align:center" onkeydown="if(event.key=='Enter')authLogin()">
+    <label for="lCode" id="lCodeL">קוד אישי</label><input type="password" id="lCode" inputmode="numeric" autocomplete="one-time-code" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="16" style="font-size:24px;letter-spacing:6px;text-align:center" onkeydown="if(event.key=='Enter')authLogin()">
     <button class="btn accent" type="button" id="lBtn" style="margin-top:16px" onclick="authLogin()">כניסה</button>
     <div class="lerr" id="lErr" role="alert"></div>
   </div>
@@ -543,6 +562,18 @@ function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');
 function setDot(cls,txt){$('cdot').className='dot '+cls;$('cstate').textContent=txt;}
 function scCol(n){var h=0;n=String(n||'');for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))%360;
   return 'linear-gradient(135deg,hsl('+h+',80%,62%),hsl('+((h+28)%360)+',70%,38%))';}
+// ----- v2.60.4: צבעים אמיתיים (מהלוח, ב-kinet/look): אפקט — מההגדרה שלו; סצנה — מהפריים הראשון שלה -----
+var LOOK={fx:{},sc:{}};
+function lkRgbw(c){var w=c[3]/255;return 'rgb('+Math.min(255,Math.round(c[0]+w*200))+','+Math.min(255,Math.round(c[1]+w*200))+','+Math.min(255,Math.round(c[2]+w*190))+')';}
+function lkSet(o){var fx={};String(o&&o.fx||'').split('\n').forEach(function(l){l=l.trim();if(!l)return;var f=l.split('|');
+  var c=function(x){var a=String(x||'').split(',').map(function(v){return Math.max(0,Math.min(255,+v||0));});while(a.length<4)a.push(0);return a.slice(0,4);};
+  fx[f[0]]={t:+f[1]||0,a:c(f[2]),b:c(f[3])};});
+ LOOK={fx:fx,sc:(o&&o.sc)||{}};}
+function scBg(n){n=String(n||'');
+ if(n.charAt(0)=='~'){var x=LOOK.fx[n.slice(1)];if(x){if(x.t==3)return 'linear-gradient(90deg,red,orange,yellow,lime,cyan,blue,magenta,red)';
+   return x.t==0?lkRgbw(x.a):'linear-gradient(90deg,'+lkRgbw(x.a)+','+lkRgbw(x.b)+','+lkRgbw(x.a)+')';}}
+ else{var c=LOOK.sc[n];if(c){var a=String(c).split(',');return a.length<2?'#'+a[0]:'linear-gradient(90deg,'+a.map(function(h){return '#'+h;}).join(',')+')';}}
+ return scCol(n);}
 
 // ----- זיהוי מכשיר -----
 var UA=navigator.userAgent||'';
@@ -621,10 +652,11 @@ function hashCfg(){var h=(location.hash||'').replace(/^#/,'');if(h.indexOf('h=')
   var o={};h.split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0){try{o[kv.slice(0,i)]=decodeURIComponent(kv.slice(i+1));}catch(e){}}});
   try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
   if(!o.h)return null;
-  return {host:o.h,port:o.p||'8084',user:o.u||'',pass:o.k||'',dev:devClean(o.d),name:(o.n||'').slice(0,32)};}
+  return {host:o.h,port:o.p||'8084',user:o.u||'',pass:o.k||'',dev:devClean(o.d),name:(o.n||'').slice(0,32),code:String(o.c||'').slice(0,16)};}
 function openSetup(){var c=loadCfg();if(c.host)$('fHost').value=c.host;if(c.port)$('fPort').value=c.port;
   if(c.user)$('fUser').value=c.user;if(c.pass)$('fPass').value=c.pass;$('fDev').value=c.dev||'';
-  $('saNote').style.display=(STANDALONE&&!c.pass)?'':'none';
+  var fresh=!c.pass;$('sNew').style.display=fresh?'':'none';$('sAdv').open=!fresh;   // v2.61
+  $('saNote').style.display=(STANDALONE&&fresh)?'':'none';
   $('setup').style.display='flex';}
 // v2.57: רק טכנאי (או טלפון שעוד לא חובר) פותח את פרטי החיבור. לכל השאר — הסבר פשוט
 function connTap(){var tech=!AUTH.need||!AUTH.me||((AUTH.m&1023)===1023);
@@ -658,7 +690,7 @@ function connect(){
     client=me;
     me.on('connect',function(){if(me!==client)return;setDot('ok','מחובר');
       authOnConnect();
-      me.subscribe([TP('scenes'),TP('status'),TP('alert'),TP('sched'),TP('rdm'),TP('pl'),TP('users'),TP('auth')]);
+      me.subscribe([TP('scenes'),TP('status'),TP('alert'),TP('sched'),TP('rdm'),TP('pl'),TP('users'),TP('auth'),TP('look')]);
       if(UI.last=='rdm')rdmGet(false);
       pushTime();
       refreshScenes();loadSched(false);renderDbg();});
@@ -694,17 +726,31 @@ window.addEventListener('online',function(){if(!client||!client.connected)wake()
 // באייפון אפליקציה ממסך הבית מקבלת זיכרון נפרד מספארי. לכן מכניסים את פרטי החיבור לכתובת רגע לפני ההוספה,
 // והאייקון שומר אותם. מיד אחר כך הכתובת מנוקה.
 var INST=false;
-function instInit(){var c=$('instCard');if(!c)return;if(!MOBILE||STANDALONE){c.style.display='none';return;}c.style.display='';
+// v2.61: הכרטיס מופיע בלשונית "עכשיו" (גם במסך הפשוט) — רק בטלפון, בדפדפן, אחרי שהשלט מחובר ונכנסו
+function instWant(){if(!MOBILE||STANDALONE||!cfg||!cfg.host)return false;
+  try{if(localStorage.getItem('kinetInstHide'))return false;}catch(e){}
+  return !(AUTH.need&&!AUTH.me);}
+function instInit(){var c=$('instCard');if(!c)return;if(!instWant()){c.style.display='none';return;}c.style.display='';
+  if(INST)return;$('instGo').style.display='';$('instDoneB').style.display='none';
   $('instTxt').innerHTML=IOS
-   ?'באייפון, אפליקציה ממסך הבית שומרת נתונים בנפרד מספארי, ולכן צריך להכין את הקישור לפני ההוספה. לחץ <b>הכן קישור</b>, ואז בספארי: כפתור השיתוף <b>⬆︎</b> › <b>הוסף למסך הבית</b>. בפתיחה הראשונה מהאייקון נכנסים שוב עם שם וקוד.'
-   :'לחץ <b>הכן קישור</b>, ואז בכרום: תפריט <b>⋮</b> › <b>הוסף למסך הבית</b>.';}
-function instPrep(){var c=loadCfg();if(!c.host||!c.pass){toast('קודם צריך להתחבר לברוקר');return;}
-  var h='#h='+encodeURIComponent(c.host)+'&p='+encodeURIComponent(c.port||'8084')+'&u='+encodeURIComponent(c.user||'')+'&k='+encodeURIComponent(c.pass)+(c.dev?'&d='+encodeURIComponent(c.dev):'')+(c.name?'&n='+encodeURIComponent(c.name):'');
+   ?'כך השלט נפתח מאייקון, כמו אפליקציה — בלי ספארי ובלי להקליד שוב את הקוד. לוחצים <b>הוסף למסך הבית</b> וממשיכים לפי ההוראות.'
+   :'כך השלט נפתח מאייקון, כמו אפליקציה. לוחצים <b>הוסף למסך הבית</b> וממשיכים לפי ההוראות.';}
+function instHide(){try{localStorage.setItem('kinetInstHide','1');}catch(e){}INST=false;
+  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}$('instCard').style.display='none';}
+// באייפון אפליקציה ממסך הבית מקבלת זיכרון נפרד מספארי. לכן מכניסים לכתובת, רגע לפני ההוספה, את פרטי החיבור
+// ואת הכניסה (שם + קוד אישי) — והאייקון שומר אותם. כשהמשתמש חוזר לדף או לוחץ "סיימתי", הכתובת מנוקה.
+function instPrep(){var c=loadCfg();if(!c.host||!c.pass){toast('השלט עוד לא מחובר');return;}
+  var E=function(x){return encodeURIComponent(x).replace(/[!'()*~]/g,function(ch){return '%'+ch.charCodeAt(0).toString(16).toUpperCase();});};
+  var h='#h='+E(c.host)+'&p='+E(c.port||'8084')+'&u='+E(c.user||'')+'&k='+E(c.pass)+(c.dev?'&d='+E(c.dev):'');
+  if(AUTH.me)h+='&n='+E(AUTH.me.u)+'&c='+E(AUTH.me.c);else if(c.name)h+='&n='+E(c.name);
   try{history.replaceState(null,'',location.pathname+location.search+h);}catch(e){}
-  INST=true;$('instDoneB').style.display='';
-  toast(IOS?'עכשיו: שיתוף ⬆︎ › הוסף למסך הבית':'עכשיו: תפריט ⋮ › הוסף למסך הבית');}
+  INST=true;$('instGo').style.display='none';$('instDoneB').style.display='';
+  $('instTxt').innerHTML=IOS
+   ?'עכשיו בספארי: כפתור השיתוף <b>⬆︎</b> › <b>הוסף למסך הבית</b> › <b>הוסף</b>. מעכשיו פותחים את השלט מהאייקון.'
+   :'עכשיו בכרום: תפריט <b>⋮</b> › <b>הוסף למסך הבית</b> › <b>הוסף</b>. מעכשיו פותחים את השלט מהאייקון.';
+  toast(IOS?'שיתוף ⬆︎ › הוסף למסך הבית':'תפריט ⋮ › הוסף למסך הבית');}
 function instDone(loud){INST=false;try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
-  $('instDoneB').style.display='none';if(loud)toast('הקישור נוקה מהכתובת');}
+  instInit();if(loud)toast('מעולה — מעכשיו פותחים מהאייקון');}
 
 function onMsg(topic,payload){
   var msg=payload.toString();
@@ -716,6 +762,7 @@ function onMsg(topic,payload){
   else if(topic===TP('alert')){ toast(msg); }
   else if(topic===TP('pl')){ try{PLL=JSON.parse(msg)||[];}catch(e){PLL=[];} renderPl(); refreshSceneSelects(); }
   else if(topic===TP('rdm')){ try{RD.d=JSON.parse(msg);RD.at=Date.now();rdmDraw(false);}catch(e){} }
+  else if(topic===TP('look')){ try{lkSet(JSON.parse(msg));if(scenesLoaded)renderScenes(scenes.join('\n'));}catch(e){} }   // v2.60.4
 }
 
 // ----- סטטוס + אישור צבע -----
@@ -779,7 +826,7 @@ function renderScenes(txt){
   else{
     box.innerHTML='';
     scenes.forEach(function(n){var d=document.createElement('button');d.type='button';d.className='scene';d.dataset.name=n;
-      d.innerHTML='<span class="ssw" style="background:'+scCol(n)+'"><span>מתנגן</span></span><span>'+esc(scLabel(n))+'</span>';
+      d.innerHTML='<span class="ssw" style="background:'+scBg(n)+'"><span>מתנגן</span></span><span>'+esc(scLabel(n))+'</span>';
       if(curMode==='PLAYING'&&n===curPlay)d.classList.add('active');d.onclick=function(){playScene(n)};box.appendChild(d);});
   }
   refreshSceneSelects();
@@ -1237,10 +1284,11 @@ function authLoadMe(){AUTH.me=null;try{var s=JSON.parse(localStorage.getItem(AKE
 function permOk(id){if(id=='view'||!AUTH.need)return true;var b=TAB_BIT[id];return b==null?true:!!((AUTH.m>>b)&1);}
 var _visTabs=visTabs;visTabs=function(){return _visTabs().filter(permOk);};
 function authSave(){try{if(AUTH.me)localStorage.setItem(AKEY(),JSON.stringify(AUTH.me));else localStorage.removeItem(AKEY());}catch(e){}}
-function authRefreshUi(){buildRail();showTab(curTab(),true);uiDraw();
+function simpleMode(){var tabs=AUTH.m&1023;return !!(AUTH.need&&AUTH.me&&tabs&&!(tabs&~3));}   // v2.60: רק עכשיו/תרחישים
+function authRefreshUi(){document.body.classList.toggle('simple',simpleMode());buildRail();showTab(curTab(),true);uiDraw();instInit();
  var w=$('whoCard');if(w){w.style.display=AUTH.need&&AUTH.me?'':'none';$('whoName').textContent=AUTH.me?AUTH.me.u:'';}
  var ob=$('outb');if(ob){ob.style.display=AUTH.need&&AUTH.me?'':'none';ob.title=AUTH.me?'מחובר כ-'+AUTH.me.u:'';}}
-function authOutAsk(){if(!AUTH.me)return;if(confirm('להתנתק מהשלט? בכניסה הבאה יצטרכו שם וקוד.'))authLogout('התנתקת. כדי להמשיך צריך שם וקוד.');}
+function authOutAsk(){if(!AUTH.me)return;if(confirm('להתנתק מהשלט? בכניסה הבאה יצטרכו את הקוד האישי.'))authLogout('התנתקת. כדי להמשיך צריך את הקוד האישי.');}
 function authRaw(p){if(client)client.publish(TP('cmd'),p);}
 function authSign(p,me){var ts=Math.max(Date.now(),AUTH.last+1);AUTH.last=ts;
  return {ts:String(ts),txt:'@'+me.u+'|'+ts+'|'+hmac16(me.c,me.u+'|'+ts+'|'+p)+'|'+p};}
@@ -1248,7 +1296,9 @@ function authSign(p,me){var ts=Math.max(Date.now(),AUTH.last+1);AUTH.last=ts;
 function authSend(p,loud){
  if(!AUTH.known){if(AUTH.q.indexOf(p)<0&&AUTH.q.length<20)AUTH.q.push(p);return true;}
  if(!AUTH.need){authRaw(p);return true;}
- if(!AUTH.me){authShow('');if(loud)toast('צריך להיכנס עם שם וקוד');return false;}
+ if(!AUTH.me){authShow('');if(loud)toast('צריך להקליד את הקוד האישי');return false;}
+ // v2.61: כניסה שעוד לא אומתה (הגיעה מהאייקון) — לא שולחים פקודות חתומות בקוד שאולי שגוי (כל אחת נספרת בנעילה)
+ if(!AUTH.me.g){if(AUTH.q.indexOf(p)<0&&AUTH.q.length<20)AUTH.q.push(p);authCheck();return true;}
  authRaw(authSign(p,AUTH.me).txt);return true;}
 function authFlush(){var q=AUTH.q;AUTH.q=[];q.forEach(function(p){authSend(p,false);});}
 function authOnConnect(){AUTH.known=false;clearTimeout(AUTH.kt);AUTH.kt=setTimeout(function(){if(!AUTH.known){AUTH.known=true;AUTH.need=false;authRefreshUi();authFlush();}},2500);}
@@ -1258,7 +1308,7 @@ function authUsers(msg){var o;try{o=JSON.parse(msg);}catch(e){return;}
  if(AUTH.me){var f=null;AUTH.list.forEach(function(x){if(x[0]===AUTH.me.u)f=x;});
   if(!f){authKick('המשתמש '+AUTH.me.u+' נמחק מהלוח');return;}
   if(AUTH.me.g&&+f[2]!==+AUTH.me.g){authLogout('הקוד של '+AUTH.me.u+' שונה — צריך להיכנס מחדש');return;}
-  AUTH.m=+f[1];authHide();authRefreshUi();authFlush();}
+  AUTH.m=+f[1];authHide();authRefreshUi();if(AUTH.me.g)authFlush();else authCheck();}   // v2.61: כניסה לא מאומתת — פקודות ממתינות לתשובת הלוח
  else{AUTH.q=[];authShow('');authRefreshUi();}}
 function authShow(err){var sel=$('lUser'),cur=sel.value;
  sel.innerHTML=AUTH.list.map(function(x){return '<option>'+esc(x[0])+'</option>';}).join('');
@@ -1266,11 +1316,15 @@ function authShow(err){var sel=$('lUser'),cur=sel.value;
  // v2.57: הזמנה אישית — השם ידוע, רק קוד
  var mine=cfg&&cfg.name&&AUTH.list.some(function(x){return x[0]===cfg.name;});
  if(mine){sel.value=cfg.name;$('lUserW').style.display='none';$('lTitle').textContent='שלום '+cfg.name+' 👋';$('lNote').textContent='הקלד את הקוד האישי שקיבלת. צריך את זה רק בפעם הראשונה.';$('lCodeL').textContent='קוד אישי';}
- else{$('lUserW').style.display='';$('lTitle').textContent='כניסה לשלט';$('lNote').textContent='בחר את השם שלך והקלד את הקוד שקיבלת.';$('lCodeL').textContent='קוד';}
+ else{$('lUserW').style.display='';$('lTitle').textContent='כניסה לשלט';$('lNote').textContent='בחר את השם שלך והקלד את הקוד האישי שקיבלת.';$('lCodeL').textContent='קוד אישי';}
  $('lErr').textContent=err||'';$('login').style.display='flex';
  // בטלפון לא מקפיצים מקלדת לבד — היא מסתירה את רשימת השמות
  if(!MOBILE)setTimeout(function(){try{$('lCode').focus();}catch(e){}},50);}
 function authHide(){$('login').style.display='none';}
+// v2.61: כניסה ששמורה בלי מונה גרסה (הגיעה מהאייקון) — שואלים את הלוח בשקט אם הקוד נכון
+function authCheck(){var me=AUTH.me;if(!me||AUTH.pend||!client||!client.connected)return;
+ var s=authSign('WHO',me);AUTH.pend={u:me.u,c:me.c,ts:s.ts,quiet:1};authRaw(s.txt);
+ setTimeout(function(){if(AUTH.pend&&AUTH.pend.ts===s.ts)AUTH.pend=null;},6000);}
 function authLogin(){var u=$('lUser').value,c=$('lCode').value.trim();
  if(!u){$('lErr').textContent='אין משתמשים ברשימה';return;}
  if(c.length<4){$('lErr').textContent='הקוד צריך לפחות 4 תווים';return;}
@@ -1283,9 +1337,10 @@ var AUTH_ERR={lock:'יותר מדי ניסיונות שגויים — נסה ש�
 function authReply(msg){var o;try{o=JSON.parse(msg);}catch(e){return;}
  var p=AUTH.pend;
  if(p&&o.u===p.u&&String(o.ts)===p.ts){AUTH.pend=null;$('lBtn').disabled=false;
-  if(+o.ok===1){AUTH.me={u:p.u,c:p.c,g:+o.g};AUTH.m=+o.m;authSave();$('lCode').value='';authHide();authRefreshUi();toast('שלום '+p.u);
-   refreshScenes();loadSched(false);pushTime();}
-  else $('lErr').textContent=AUTH_ERR[o.e]||'הכניסה נדחתה';
+  if(+o.ok===1){AUTH.me={u:p.u,c:p.c,g:+o.g};AUTH.m=+o.m;authSave();$('lCode').value='';authHide();authRefreshUi();if(!p.quiet)toast('שלום '+p.u);
+   authFlush();refreshScenes();loadSched(false);pushTime();}
+  else if(p.quiet&&o.e==='time')toast(AUTH_ERR.time);
+  else{if(p.quiet){AUTH.me=null;AUTH.q=[];authSave();authRefreshUi();}authShow(AUTH_ERR[o.e]||'הכניסה נדחתה');}
   return;}
  if(!AUTH.me||o.u!==AUTH.me.u)return;
  if(+o.ok===2){toast('אין לך הרשאה לפעולה הזאת');AUTH.m=+o.m;authRefreshUi();}
@@ -1293,13 +1348,13 @@ function authReply(msg){var o;try{o=JSON.parse(msg);}catch(e){return;}
  else if(+o.ok===0&&o.e==='code')authLogout(AUTH_ERR.code+' — צריך להיכנס מחדש');
  else if(+o.ok===0&&o.e==='lock')authLogout(AUTH_ERR.lock);
  else if(+o.ok===0&&o.e==='time')toast(AUTH_ERR.time);}
-// משתמש שנמחק: הטלפון שוכח גם את פרטי החיבור לברוקר ומתנתק — כדי לחזור צריך לסרוק את ה-QR מחדש
+// משתמש שנמחק: הטלפון שוכח גם את פרטי החיבור ומתנתק — כדי לחזור צריך הזמנה חדשה
 function authKick(why){AUTH.me=null;AUTH.m=0;AUTH.need=true;authSave();
  try{localStorage.removeItem('kinetRemote');}catch(e){}cfg={};
  var c=client;client=null;connTok++;if(c){try{c.end(true);}catch(e){}}
  setDot('err','הגישה הוסרה');
  $('login').querySelector('.box').innerHTML='<h2 style="margin-bottom:6px">הגישה לשלט הוסרה</h2><div class="note" style="margin-top:0">'+esc(why)+
-  '. הטלפון התנתק ופרטי החיבור נמחקו ממנו. כדי להתחבר שוב צריך לקבל משתמש חדש ולסרוק מחדש את קוד ה-QR של הלוח.</div>';
+  '. הטלפון התנתק ופרטי החיבור נמחקו ממנו. כדי להתחבר שוב צריך לבקש הזמנה חדשה ממי שהתקין את המערכת.</div>';
  $('login').style.display='flex';}
 function authLogout(why){AUTH.me=null;AUTH.m=0;authSave();authRefreshUi();if(AUTH.need)authShow(why);else if(why)toast(why);}
 
@@ -1309,7 +1364,9 @@ instInit();
 upc();
 gfDraw();
 var hc=hashCfg();
-if(hc){cfg=hc;try{localStorage.setItem('kinetRemote',JSON.stringify(cfg))}catch(e){}setTimeout(function(){toast('פרטי החיבור נשמרו בטלפון');},300);}
+if(hc){var hcode=hc.code;delete hc.code;cfg=hc;try{localStorage.setItem('kinetRemote',JSON.stringify(cfg))}catch(e){}
+  // v2.61: אייקון שהוכן מהשלט מביא איתו גם את הכניסה — נבדקת מול הלוח מיד כשהוא עונה (authCheck)
+  if(hcode&&hc.name){try{localStorage.setItem(AKEY(),JSON.stringify({u:hc.name,c:hcode,g:0}));}catch(e){}}}
 else cfg=loadCfg();
 authLoadMe();
 if(cfg.host&&cfg.pass){connect();}else{openSetup();}

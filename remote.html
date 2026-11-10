@@ -126,7 +126,7 @@ details summary{cursor:pointer;font-weight:600;min-height:32px;font-size:14px}
  <label class="chk sm"><input type="checkbox" id="fRem">לזכור את הסיסמה במכשיר הזה</label>
  <details><summary>פרטי שרת MQTT</summary>
   <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
-   <p class="xs dim">אותם פרטים כמו בשלט בטלפון. אם השלט פתוח באותו דפדפן, הם כבר כאן.</p>
+   <p class="xs dim">אותם פרטים כמו בשלט בטלפון. אם השלט (app.html) פתוח באותו דפדפן, הם כבר כאן.</p>
    <label class="f">כתובת שרת<input class="in ltr" id="fHost" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="url" value="u7ced2cc.ala.eu-central-1.emqxsl.com"></label>
    <div class="row">
     <label class="f" style="flex:1">פורט (WSS)<input class="in" type="number" inputmode="numeric" id="fPort" value="8084"></label>
@@ -187,7 +187,7 @@ function cat(a,b){var o=new Uint8Array(a.length+b.length);o.set(a,0);o.set(b,a.l
 function b64(s){return btoa(unescape(encodeURIComponent(s)));}
 
 // חזרה לשלט. באפליקציה ממסך הבית אין כפתור "אחורה" של הדפדפן, לכן הכפתור בפס העליון
-function goBack(){if(history.length>1&&document.referrer&&document.referrer.indexOf(location.host)>=0)history.back();else location.href='admin.html';}
+function goBack(){if(history.length>1&&document.referrer&&document.referrer.indexOf(location.host)>=0)history.back();else location.href='app.html';}
 
 // ---------- פרטי חיבור ----------
 // v2.53: מזהה לוח — כמה לוחות על אותו ברוקר. ריק = הנושאים הישנים (kinet/cmd), אחרת kinet/<מזהה>/cmd
@@ -262,6 +262,9 @@ function onMsg(topic,payload){
  else if(t[0]==='E'){cur.finish({status:+t[2],ctype:'text/plain; charset=utf-8',body:enc.encode(t.slice(3).join(' ')),tunErr:true});}
 }
 
+// v2.59: דחיסה — הלוח שולח gzip כשמבקשים, והדפדפן פותח (כל הדפדפנים החדשים)
+var GZ=typeof DecompressionStream!=='undefined';
+function gunzip(u8){return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer().then(function(b){return new Uint8Array(b);});}
 // ---------- מנהרה: תור בקשות, אחת בכל פעם ----------
 function tfetch(method,path,ctype,body,onProg){return new Promise(function(res,rej){Q.push({method:method,path:path,ctype:ctype,body:body,res:res,rej:rej,tries:0,onProg:onProg});pump();});}
 function rejectAll(m){Q.splice(0).forEach(function(r){r.rej(m);});}
@@ -275,13 +278,16 @@ function pump(){
  cur={rid:++rid,acked:-1,sent:0,parts:[],lastSeq:-1,status:0,total:0,ctype:'',
   touch:function(){clearTimeout(timer);timer=setTimeout(function(){cur&&cur.fail('הלוח לא עונה — אולי הוא כבוי, בלי אינטרנט, או שהגישה מרחוק לא זמינה בגרסה שלו (צריך v2.48)');},STEP_TO);},
   pump:function(){while(cur&&client&&client.connected&&cur.sent<n&&cur.sent<=cur.acked+WIN){var s=cur.sent,chunk=body.subarray(s*CHUNK,Math.min(body.length,(s+1)*CHUNK));
-    var h=s===0?('Q '+cid+' '+cur.rid+' 0 '+body.length+' '+r.method+' '+path+' '+(r.ctype?encodeURIComponent(r.ctype):'-')+' '+(auth.p?b64(auth.u+':'+auth.p):'-')+'\n'):('Q '+cid+' '+cur.rid+' '+s+'\n');
+    var h=s===0?('Q '+cid+' '+cur.rid+' 0 '+body.length+' '+r.method+' '+path+' '+(r.ctype?encodeURIComponent(r.ctype):'-')+' '+(auth.p?b64(auth.u+':'+auth.p):'-')+(GZ?' gz':'')+'\n'):('Q '+cid+' '+cur.rid+' '+s+'\n');
     var pl=cat(enc.encode(h),chunk);bytesOut+=pl.length;client.publish(REQ_T,pl,{qos:1});cur.sent++;
     if(r.onProg&&body.length>CHUNK)r.onProg(Math.min(1,cur.sent*CHUNK/body.length),'up');}meta();},
   prog:function(){if(r.onProg&&cur.total>CHUNK){var got=0;cur.parts.forEach(function(x){if(x)got+=x.length;});r.onProg(Math.min(1,got/cur.total),'down');}},
-  check:function(){if(cur.lastSeq<0)return;for(var i=0;i<=cur.lastSeq;i++)if(!cur.parts[i])return;
+  check:function(){if(cur.lastSeq<0||cur.dec)return;for(var i=0;i<=cur.lastSeq;i++)if(!cur.parts[i])return;
     var out=new Uint8Array(cur.total),o=0;for(var j=0;j<=cur.lastSeq;j++){out.set(cur.parts[j],o);o+=cur.parts[j].length;}
-    cur.finish({status:cur.status,ctype:cur.ctype,body:out.subarray(0,o)});},
+    var ct=cur.ctype,me=cur;
+    if(ct.indexOf('gz:')===0){me.dec=true;ct=ct.slice(3);   // v2.59: הלוח שלח דחוס — פותחים כאן
+     gunzip(out.subarray(0,o)).then(function(b){if(cur===me)me.finish({status:me.status,ctype:ct,body:b});}).catch(function(){if(cur===me)me.fail('פתיחת הנתונים הדחוסים נכשלה');});return;}
+    cur.finish({status:cur.status,ctype:ct,body:out.subarray(0,o)});},
   finish:function(x){clearTimeout(timer);cur=null;
     if(x.tunErr&&x.status===503&&r.tries<3){r.tries++;Q.unshift(r);setTimeout(pump,900);return;}
     lastRtt=Date.now()-t0;meta();r.res(x);setTimeout(pump,0);},
@@ -355,7 +361,7 @@ window.addEventListener('pageshow',function(e){if(e.persisted)recycle();});   //
 window.addEventListener('online',function(){if(client&&!client.connected)recycle();});
 
 // ---------- shim שמוזרק לדף הלוח ----------
-var SHIM='<script>(function(){var P=parent.KR,cache={},poll=/^\\/(status|seen)(\\?|$)/,gap={"/mon":2000,"/rdm":3000},nextAt={};'+
+var SHIM='<script>window.KREM=1;(function(){var P=parent.KR,cache={},poll=/^\\/(status|seen)(\\?|$)/,gap={"/mon":2000,"/rdm":3000},nextAt={};'+
  'function mk(r){var nb=(r.status==204||r.status==304)?null:r.body;return new Response(nb,{status:r.status,headers:{"Content-Type":r.ctype||"text/plain; charset=utf-8"}});}'+
  'function pth(u){u=String(u);var m=u.match(/^[a-z]+:\\/\\/[^\\/]*(\\/.*)?$/i);return m?(m[1]||"/"):u;}'+
  'window.fetch=function(input,init){init=init||{};var url=pth(typeof input==="string"?input:input.url),method=(init.method||"GET").toUpperCase();'+
