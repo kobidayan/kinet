@@ -64,7 +64,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
   /* v2.60: מסך פשוט למשתמש שמותר לו רק "עכשיו" ו"תרחישים" — בלי לשוניות, הכול במסך אחד, כפתורים גדולים */
   body.simple .rail{display:none}
   body.simple #p-now,body.simple #p-scenes{display:block;animation:none}
-  body.simple #p-now .card:nth-of-type(2){display:none}
+  body.simple #quickCard{display:none}
   body.simple #p-scenes .row,body.simple #p-scenes .note,body.simple #p-now .note{display:none}
   body.simple #p-scenes .card:first-child h2{display:none}
   body.simple .scenes{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -175,6 +175,27 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));z-index:10}
   #setup details{margin-top:14px}#setup summary{cursor:pointer;font-weight:700;min-height:36px;color:var(--dim)}
   #setup .box{margin:auto;background:var(--card);border-radius:18px;padding:22px;max-width:420px;width:100%;box-shadow:var(--shadow)}
+  /* v2.62: התוכנית הבאה */
+  .nxc{display:flex;align-items:center;gap:14px}
+  .nxt{flex:none;min-width:86px;padding:10px 12px;border-radius:14px;background:var(--accbg);color:var(--acc);text-align:center;font-weight:800;font-size:26px;line-height:1.1;direction:ltr}
+  .nxt small{display:block;font-size:12px;font-weight:700;direction:rtl;margin-top:3px}
+  .nxc .nxl{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .nxc .nxk{font-size:13px;color:var(--dim);font-weight:700}
+  .nxc .nxw{font-size:18px;font-weight:800;overflow-wrap:anywhere}
+  .nxc .nxu{font-size:14px;color:var(--dim)}
+  .nxc.off .nxt{background:var(--chip);color:var(--dim)}
+  /* v2.62: הוראות הוספה למסך הבית */
+  #instOv{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:12;
+    padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+  #instOv .box{background:var(--card);border-radius:20px;padding:20px;max-width:440px;width:100%;box-shadow:var(--shadow);max-height:100%;overflow-y:auto}
+  .ist{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line2);font-size:16px;line-height:1.45}
+  .ist:last-of-type{border-bottom:none}
+  .ist .n{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accbg);color:var(--acc);font-weight:800;display:flex;align-items:center;justify-content:center}
+  .ist .ic{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;width:34px;height:34px;border-radius:9px;border:1px solid var(--bd);background:var(--panel2);color:var(--acc);margin:0 4px}
+  .ist .ic svg{width:20px;height:20px}
+  .iwarn{background:var(--warnbg);color:var(--warn);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:700;margin:10px 0 4px;line-height:1.5}
+  .iarrow{text-align:center;font-size:28px;color:var(--acc);margin-top:6px;animation:ib 1.2s ease-in-out infinite}
+  @keyframes ib{50%{transform:translateY(6px)}}
   #login{position:fixed;inset:0;background:var(--bg);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;
     padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));z-index:9}
   #login .box{margin:auto;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:380px;width:100%;box-shadow:var(--shadow)}
@@ -271,7 +292,12 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     <div class="gmrow" id="gmrow" style="display:none"><span style="font-weight:700;white-space:nowrap">עוצמה כללית</span>
       <input type="range" id="gm" min="0" max="100" step="1" value="100" oninput="gmInput(this.value)" onchange="gmSend(this.value)" aria-label="עוצמה כללית באחוזים"><b id="gmv">--</b></div>
   </div>
-  <div class="card">
+  <!-- v2.62: התוכנית הבאה בלוח הזמנים -->
+  <div class="card" id="nextCard" style="display:none"><div class="nxc" id="nxc">
+    <div class="nxt" id="nxTime">--</div>
+    <div class="nxl"><span class="nxk">התוכנית הבאה</span><span class="nxw" id="nxWhat">--</span><span class="nxu" id="nxWhen"></span></div>
+  </div></div>
+  <div class="card" id="quickCard">
     <h2>פעולות מהירות</h2>
     <div class="row" style="margin-top:0">
       <button class="btn" onclick="stepScene('PREV')" aria-label="התרחיש הקודם">‹ הקודם</button>
@@ -283,7 +309,7 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     </div>
     <div class="note"><b>עצור</b> משאיר את התאורה במצב האחרון; <b>כבה</b> מכבה לגמרי. בחירת תרחיש — בלשונית ״תרחישים״.</div>
   </div>
-  <!-- v2.61: חייב להישאר הכרטיס השלישי ב-p-now (המסך הפשוט מסתיר את השני) -->
+  <!-- v2.62: המסך הפשוט מסתיר את quickCard לפי id (לא לפי מיקום) -->
   <div class="card" id="instCard" style="display:none">
     <h2>📲 השלט על מסך הבית</h2>
     <div id="instTxt" style="font-size:15px;line-height:1.5;color:var(--dim)"></div>
@@ -291,7 +317,16 @@ window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(r)
     <button class="btn gray" type="button" id="instDoneB" style="display:none;margin-top:10px" onclick="instDone(true)">סיימתי</button>
     <button class="mini" type="button" style="display:block;margin:10px auto 0" onclick="instHide()">לא עכשיו</button>
   </div>
+  <!-- v2.62: אחרי "לא עכשיו" — קישור קטן להחזרת הכרטיס -->
+  <button class="mini" type="button" id="instBack" style="display:none;margin:0 auto" onclick="instShowAgain()">📲 להוסיף את השלט למסך הבית</button>
 </section>
+<!-- v2.62: הוראות הוספה למסך הבית — בציור, צעד אחרי צעד -->
+<div id="instOv" role="dialog" aria-modal="true" aria-label="הוספה למסך הבית" onclick="if(event.target===this)instOvClose()">
+  <div class="box"><h2 style="margin-bottom:4px">📲 הוספה למסך הבית</h2><div id="instOvB"></div>
+    <button class="btn accent" type="button" style="margin-top:14px" onclick="instDone(true)">סיימתי — האייקון נוסף</button>
+    <button class="mini" type="button" style="display:block;margin:8px auto 0" onclick="instOvClose()">סגור</button>
+  </div>
+</div>
 
 <section class="pane" id="p-scenes" role="tabpanel" aria-label="תרחישים">
   <div class="card">
@@ -728,15 +763,44 @@ window.addEventListener('online',function(){if(!client||!client.connected)wake()
 var INST=false;
 // v2.61: הכרטיס מופיע בלשונית "עכשיו" (גם במסך הפשוט) — רק בטלפון, בדפדפן, אחרי שהשלט מחובר ונכנסו
 function instWant(){if(!MOBILE||STANDALONE||!cfg||!cfg.host)return false;
-  try{if(localStorage.getItem('kinetInstHide'))return false;}catch(e){}
   return !(AUTH.need&&!AUTH.me);}
-function instInit(){var c=$('instCard');if(!c)return;if(!instWant()){c.style.display='none';return;}c.style.display='';
+function instHidden(){try{return !!localStorage.getItem('kinetInstHide');}catch(e){return false;}}
+function instInit(){var c=$('instCard'),b=$('instBack');if(!c)return;var w=instWant(),hid=instHidden();
+  c.style.display=(w&&!hid)?'':'none';if(b)b.style.display=(w&&hid)?'block':'none';
+  if(!w||hid)return;
   if(INST)return;$('instGo').style.display='';$('instDoneB').style.display='none';
   $('instTxt').innerHTML=IOS
-   ?'כך השלט נפתח מאייקון, כמו אפליקציה — בלי ספארי ובלי להקליד שוב את הקוד. לוחצים <b>הוסף למסך הבית</b> וממשיכים לפי ההוראות.'
-   :'כך השלט נפתח מאייקון, כמו אפליקציה. לוחצים <b>הוסף למסך הבית</b> וממשיכים לפי ההוראות.';}
+   ?'כך השלט נפתח מאייקון, כמו אפליקציה — בלי ספארי ובלי להקליד שוב את הקוד. לוחצים <b>הוסף למסך הבית</b> ומקבלים הוראות עם ציור.'
+   :'כך השלט נפתח מאייקון, כמו אפליקציה. לוחצים <b>הוסף למסך הבית</b> ומקבלים הוראות עם ציור.';}
 function instHide(){try{localStorage.setItem('kinetInstHide','1');}catch(e){}INST=false;
-  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}$('instCard').style.display='none';}
+  try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}instInit();}
+// v2.62: "לא עכשיו" כבר לא לתמיד — הקישור הקטן מחזיר את הכרטיס
+function instShowAgain(){try{localStorage.removeItem('kinetInstHide');}catch(e){}INST=false;instInit();
+  var c=$('instCard');if(c&&c.scrollIntoView)c.scrollIntoView({behavior:'smooth',block:'center'});}
+// דפדפן בתוך אפליקציה (וואטסאפ, ג׳ימייל, אינסטגרם...) — שם אין "הוסף למסך הבית"
+function instInApp(){return /FBAN|FBAV|Instagram|Line\/|WhatsApp|GSA\/|; wv\)|MicroMessenger|Telegram/i.test(UA);}
+function instIosOther(){return IOS&&/CriOS|FxiOS|EdgiOS|OPiOS|YaBrowser/i.test(UA);}
+var IC_SHARE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+var IC_ADD='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/></svg>';
+var IC_DOTS='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+var IC_PHONE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 9v6M9 12h6"/></svg>';
+function instSteps(){var st=function(n,t){return '<div class="ist"><span class="n">'+n+'</span><div>'+t+'</div></div>';},h='';
+  if(instInApp()){h+='<div class="iwarn">השלט פתוח בתוך אפליקציה (וואטסאפ / מייל / רשת חברתית). משם אי אפשר להוסיף למסך הבית.</div>';
+    h+=st(1,IOS?'לוחצים על <span class="ic">'+IC_DOTS+'</span> או על <span class="ic">'+IC_SHARE+'</span> ובוחרים <b>פתח בספארי</b>':'לוחצים על <span class="ic">'+IC_DOTS+'</span> ובוחרים <b>פתח בכרום</b> (Open in Chrome)');
+    h+=st(2,'בדפדפן שנפתח — שוב <b>הוסף למסך הבית</b> בשלט');return h;}
+  if(IOS){
+    if(instIosOther())h+='<div class="iwarn">באייפון הכי בטוח לעשות את זה מ<b>ספארי</b>. אם אין בתפריט "הוסף למסך הבית" — פתח את השלט בספארי.</div>';
+    h+=st(1,'לוחצים על כפתור השיתוף <span class="ic">'+IC_SHARE+'</span> — בשורה של ספארי '+(window.innerWidth<700?'<b>למטה</b>':'<b>למעלה</b>'));
+    h+=st(2,'גוללים ברשימה ובוחרים <span class="ic">'+IC_ADD+'</span> <b>הוסף למסך הבית</b>');
+    h+=st(3,'לוחצים <b>הוסף</b> — בפינה למעלה');
+    h+=st(4,'האייקון מופיע במסך הבית. מעכשיו פותחים משם');
+    if(window.innerWidth<700)h+='<div class="iarrow" aria-hidden="true">⬇</div>';
+  }else{
+    h+=st(1,'לוחצים על <span class="ic">'+IC_DOTS+'</span> — שלוש הנקודות <b>למעלה</b> בכרום');
+    h+=st(2,'בוחרים <span class="ic">'+IC_PHONE+'</span> <b>הוספה למסך הבית</b> (או <b>התקנת אפליקציה</b>)');
+    h+=st(3,'לוחצים <b>הוסף</b> (או <b>התקן</b>) — ואם שואלים, שוב <b>הוסף</b>');
+    h+=st(4,'האייקון מופיע במסך הבית (לפעמים בעמוד האחרון או במגירת האפליקציות)');}
+  return h;}
 // באייפון אפליקציה ממסך הבית מקבלת זיכרון נפרד מספארי. לכן מכניסים לכתובת, רגע לפני ההוספה, את פרטי החיבור
 // ואת הכניסה (שם + קוד אישי) — והאייקון שומר אותם. כשהמשתמש חוזר לדף או לוחץ "סיימתי", הכתובת מנוקה.
 function instPrep(){var c=loadCfg();if(!c.host||!c.pass){toast('השלט עוד לא מחובר');return;}
@@ -745,12 +809,29 @@ function instPrep(){var c=loadCfg();if(!c.host||!c.pass){toast('השלט עוד 
   if(AUTH.me)h+='&n='+E(AUTH.me.u)+'&c='+E(AUTH.me.c);else if(c.name)h+='&n='+E(c.name);
   try{history.replaceState(null,'',location.pathname+location.search+h);}catch(e){}
   INST=true;$('instGo').style.display='none';$('instDoneB').style.display='';
-  $('instTxt').innerHTML=IOS
-   ?'עכשיו בספארי: כפתור השיתוף <b>⬆︎</b> › <b>הוסף למסך הבית</b> › <b>הוסף</b>. מעכשיו פותחים את השלט מהאייקון.'
-   :'עכשיו בכרום: תפריט <b>⋮</b> › <b>הוסף למסך הבית</b> › <b>הוסף</b>. מעכשיו פותחים את השלט מהאייקון.';
-  toast(IOS?'שיתוף ⬆︎ › הוסף למסך הבית':'תפריט ⋮ › הוסף למסך הבית');}
-function instDone(loud){INST=false;try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
+  $('instTxt').innerHTML='ממשיכים לפי ההוראות. סיימת? לוחצים <b>סיימתי</b>. אפשר לפתוח שוב את ההוראות: <button class="mini" type="button" onclick="instOvOpen()">הצג הוראות</button>';
+  instOvOpen();}
+function instOvOpen(){$('instOvB').innerHTML=instSteps();$('instOv').style.display='flex';}
+function instOvClose(){$('instOv').style.display='none';}
+function instDone(loud){INST=false;instOvClose();try{history.replaceState(null,'',location.pathname+location.search);}catch(e){}
   instInit();if(loud)toast('מעולה — מעכשיו פותחים מהאייקון');}
+
+// ----- v2.62: התוכנית הבאה (מלוח הזמנים שהלוח מפרסם) -----
+function nextDraw(){var c=$('nextCard');if(!c)return;
+  if(!schedData||!schedData.length){c.style.display='none';return;}
+  var el=Math.floor((Date.now()-schedAt)/60000),best=null,left=-1;
+  schedData.forEach(function(e){if(e.nm==null||e.nm<0||!e.nx)return;var l=e.nm-el;if(l<0)return;if(!best||l<left){best=e;left=l;}});
+  var off=lastStat&&lastStat.schen===0,nos=lastStat&&lastStat.synced===0;
+  c.style.display='';$('nxc').className='nxc'+((off||nos||!best)?' off':'');
+  if(off){$('nxTime').textContent='—';$('nxWhat').textContent='לוח הזמנים כבוי';$('nxWhen').textContent='האירועים שמורים אבל לא ירוצו';return;}
+  if(nos){$('nxTime').textContent='—';$('nxWhat').textContent='לשעון של הלוח אין זמן';$('nxWhen').textContent='שום אירוע לא ירוץ עד שהשעון יסתנכרן';return;}
+  if(!best){$('nxTime').textContent='—';$('nxWhat').textContent='אין תוכנית קרובה';$('nxWhen').textContent='';return;}
+  var m=String(best.nx).match(/(\d{1,2}:\d{2})/),tm=m?m[1]:'',day=String(best.nx).replace(tm,'').trim();
+  $('nxTime').innerHTML=esc(tm||'--')+(day?'<small>'+esc(day)+'</small>':'');
+  $('nxWhat').textContent=best.a==1?('הדלקת ״'+(best.s||'?')+'״'):best.a==2?('רשימת הניגון ״'+(best.s||'?')+'״'):'כיבוי כל האורות';
+  var d=Math.floor(left/1440),h=Math.floor((left%1440)/60),mm=left%60;
+  $('nxWhen').textContent=left<1?'עכשיו':('בעוד '+(d?d+' ימים ':'')+(h?h+' ש׳ ':'')+(d?'':mm+' דק׳'));}
+setInterval(nextDraw,30000);
 
 function onMsg(topic,payload){
   var msg=payload.toString();
@@ -768,6 +849,7 @@ function onMsg(topic,payload){
 // ----- סטטוס + אישור צבע -----
 var schEnTouched=false, locTouched=false;
 function updateStatus(d){
+  if(!lastStat||lastStat.schen!==d.schen||lastStat.synced!==d.synced)setTimeout(nextDraw,0);
   lastStat=d;
   try{renderGmOv(d);}catch(e){}
   curMode=d.mode||''; curPlay=d.play||'';
@@ -1018,7 +1100,7 @@ function fillEditor(){
 }
 function renderSched(arr){
   schedData=Array.isArray(arr)?arr:[]; schedAt=Date.now();
-  renderSchedView();
+  renderSchedView();nextDraw();
   if(pendingSched!==null){
     if(schedData.map(rowKey).join(';')===pendingSched){
       clearTimeout(pendingTimer); pendingSched=null; schedDirty=false;
