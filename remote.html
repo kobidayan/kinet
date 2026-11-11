@@ -8,7 +8,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-title" content="CORE-X">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <title>גישה מרחוק</title>
+<script>/* v2.64: שפה — אותה בחירה כמו בשלט */(function(){try{var s=JSON.parse(localStorage.getItem("kinetUiA")||"{}"),l=s.lang;
+if(l!=="he"&&l!=="en"){var n=(navigator.languages&&navigator.languages[0])||navigator.language||"he";l=/^(he|iw)/i.test(n)?"he":"en";}
+if(l==="en"){var h=document.documentElement;h.setAttribute("lang","en");h.setAttribute("dir","ltr");h.className+=" i18n-wait";}}catch(e){}})();</script>
 <script>/* שגיאות JS מוצגות על המסך — בטלפון אין קונסולה */
 (function(){function show(m){try{var b=document.getElementById('jserr');if(!b){b=document.createElement('div');b.id='jserr';b.setAttribute('role','alert');b.onclick=function(){b.style.display='none';};(document.body||document.documentElement).appendChild(b);}b.style.display='';b.textContent='⚠ שגיאה בדף: '+m+' — לחץ כדי לסגור';}catch(e){}}
 window.__showErr=show;
@@ -64,6 +70,8 @@ details summary{cursor:pointer;font-weight:600;min-height:32px;font-size:14px}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.ok{background:var(--ok)}.toast.err{background:var(--err)}
 #jserr{position:fixed;top:var(--st);left:0;right:0;z-index:50;background:#b91c1c;color:#fff;font-size:13px;font-weight:700;padding:10px 14px;line-height:1.5;word-break:break-word;cursor:pointer}
+html.i18n-wait body{visibility:hidden}
+html[dir=ltr] .ltr{text-align:left}
 @media(max-width:560px){.meta{display:none}.bar{padding:calc(8px + var(--st)) 10px 8px;gap:8px}.chip.info{display:none}}
 </style>
 </head>
@@ -144,6 +152,51 @@ details summary{cursor:pointer;font-weight:600;min-height:32px;font-size:14px}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
+// ============================================================================
+//  v2.64: עברית / English — תרגום של מה שמוצג במסך, בלי לגעת בלוגיקה.
+//  כל טקסט עברי שנכנס לדף (גם מהלוח) עובר דרך tr(): קודם התאמה מלאה, אחר כך כללי סדר מילים,
+//  ואז החלפת קטעים מוכרים (הארוך קודם, רק כמילים שלמות). אלמנט עם class="notr" (שמות תרחישים,
+//  שמות משתמשים) לא מתורגם. החלפת שפה = טעינה מחדש של הדף.
+// ============================================================================
+var LANG=(function(){try{var s=JSON.parse(localStorage.getItem('kinetUiA')||'{}');if(s.lang==='he'||s.lang==='en')return s.lang;}catch(e){}
+ var l=(navigator.languages&&navigator.languages[0])||navigator.language||'he';return /^(he|iw)/i.test(l)?'he':'en';})();
+var I18N={"ל-":"to ","עד":"until","שם":"Name","(או":"(or","הבא":"Next","חסר":"missing","כבה":"Turn off","מצב":"Mode","מתי":"When","בעוד":"in","בשלט":"in the remote","חוזר":"Returning","כבוי":"Off","כן (":"yes (","למטה":"Down","מחשב":"Computer","סגור":"Close","פורט":"Port","פעיל":"Active","רגיל":"Normal","(שורה":"(line","התחבר":"Connect","חיבור":"Connection","כתובת":"Address","מחובר":"Connected","מנותק":"Disconnected","משתמש":"User","סיסמה":"Password","ספארי":"Safari","פעולה":"Action","שגיאה":"Error","בוחרים":"choose","המשתמש":"User","מתחבר…":"Connecting…","אוטומטי":"Auto","אירועים":"events","לא עונה":"Not responding","אנדרואיד":"Android","מזהה לוח":"Board ID","שם משתמש":"Username","למשל lobby":"e.g. lobby","פורט (WSS)":"Port (WSS)","מתחבר מחדש…":"Reconnecting…","אייפון/אייפד":"iPhone/iPad","⚠ שגיאה בדף:":"⚠ Page error:","— לחץ כדי לסגור":"— tap to close","(ריק אם יש לוח אחד בלבד)":"(empty if there's only one board)","מבקש":"Requesting","שפה":"Language","הורד":"Download","מושהה":"Paused","מרחוק":"Remote","תעבורה":"Traffic","נסה שוב":"Try again","טען מחדש":"Reload","אין חיבור":"No connection","חזרה לשלט":"Back to the remote","כתובת שרת":"Server address","מחובר שוב":"Connected again","ממשק הלוח":"Board interface","סיסמת שרת":"Server password","גישה מרחוק":"Remote access","הקובץ מוכן":"The file is ready","פרטי חיבור":"Connection details","מתחבר ללוח…":"Connecting to the board…","סיסמת הממשק":"Interface password","החיבור הושהה":"Connection paused","ההורדה התחילה":"Download started","לא ניתן לטעון":"Can't load","פרטי שרת MQTT":"MQTT server details","דרך שרת ה-MQTT":"via the MQTT server","ההורדה הסתיימה":"Download finished","לא ניתן להתחבר":"Can't connect","שם משתמש לממשק":"Interface username","גישה מרחוק ללוח":"Remote access to the board","הלוח החזיר שגיאה":"The board returned an error","חסרה סיסמת הממשק":"Interface password missing","המשך מאיפה שעצרתי":"Continue where I left off","סיסמת הממשק שגויה":"Wrong interface password","שמור לקבצים / שתף":"Save to Files / Share","טוען את ממשק הלוח…":"Loading the board interface…","מתחבר לשרת ה-MQTT…":"Connecting to the MQTT server…","שתף / שמור במקום אחר":"Share / save elsewhere","תשובה לא צפויה מהלוח":"Unexpected answer from the board","אין חיבור לשרת ה-MQTT":"No connection to the MQTT server","חסרים פרטי שרת ה-MQTT":"MQTT server details missing","נסה שוב בעוד כמה דקות.":"Try again in a few minutes.","הלוח לא מאפשר גישה מרחוק":"The board doesn't allow remote access","השיתוף נכשל — נסה ״הורד״":"Sharing failed — try \"Download\"","כתובת שרת ה-MQTT לא תקינה:":"Invalid MQTT server address:","לזכור את הסיסמה במכשיר הזה":"Remember the password on this device","פתיחת הנתונים הדחוסים נכשלה":"Decompressing the data failed","הדף נשלח מהלוח דרך שרת ה-MQTT":"The page is sent from the board through the MQTT server","הדף שהתקבל לא נראה כמו ממשק הלוח":"The received page doesn't look like the board interface","מזהה לוח (ריק אם יש לוח אחד בלבד)":"Board ID (empty if there's only one board)","פרטי שרת ה-MQTT שגויים (משתמש/סיסמה)":"Wrong MQTT server details (user/password)","הקובץ יישמר בתיקיית ההורדות של הטלפון.":"The file will be saved in the phone's Downloads folder.","באפליקציה ממסך הבית ״הורד״ לא תמיד עובד.":"In the Home Screen app, \"Download\" doesn't always work.","הקובץ יופיע באפליקציית ״קבצים״, בתיקיית ההורדות.":"The file will appear in the Files app, in Downloads.","ב״שמור לקבצים״ בוחרים תיקייה באייפון או ב-iCloud.":"In \"Save to Files\" choose a folder on the iPhone or in iCloud.","החיבור נקטע באמצע הפעולה — בדוק אם היא בוצעה ונסה שוב":"The connection dropped mid-action — check whether it happened and try again","את ההגדרה הזו משנים ברשת המקומית, במסך ההגדרות של הלוח.":"This setting is changed on the local network, in the board's settings screen.","אין חיבור לשרת ה-MQTT — בדוק את פרטי השרת ואת החיבור לאינטרנט":"No connection to the MQTT server — check the server details and the internet connection","ההורדה נכשלה:":"Download failed:","אותם פרטים כמו בשלט בטלפון. אם השלט (app.html) פתוח באותו דפדפן, הם כבר כאן.":"Same details as the phone remote. If the remote (app.html) is open in this browser, they're already here.","אחרי 10 דקות בלי פעילות החיבור נסגר אוטומטית, כדי לא לבזבז את תעבורת שרת ה-MQTT.":"After 10 minutes without activity the connection closes automatically, to save MQTT server traffic.","לא ניתן לטעון את רכיב החיבור (mqtt.js) — בדוק את החיבור לאינטרנט, או כבה חוסם תוכן בדפדפן":"Can't load the connection module (mqtt.js) — check the internet connection, or turn off the browser's content blocker","הלוח לא עונה — אולי הוא כבוי, בלי אינטרנט, או שהגישה מרחוק לא זמינה בגרסה שלו (צריך v2.48)":"The board isn't answering — it may be off, offline, or its version lacks remote access (needs v2.48)","מוריד":"Downloading","הממשק המלא של הלוח, מכל מקום — דרך שרת ה-MQTT, בלי לפתוח פורטים בראוטר. צריך את סיסמת הממשק של הלוח.":"The board's full interface from anywhere — through the MQTT server, without opening router ports. Needs the board's interface password.","עדכון תוכנה זמין רק ברשת המקומית":"Firmware update is available only on the local network","לא זמין בגישה מרחוק — רק ברשת המקומית":"Not available remotely — only on the local network","ממשיך":"Continues"};
+var tr=(function(){
+ if(LANG!=='en')return function(s){return s;};
+ var HEB=/[֐-׿]/,L='א-ת',cache={},keys=Object.keys(I18N).sort(function(a,b){return b.length-a.length;});
+ var re=new RegExp('(^|[^'+L+'])('+keys.map(function(k){return k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}).join('|')+')(?=[^'+L+']|$)','g');
+ var rules=[[new RegExp('(^|[^'+L+'])לפני ([0-9.:]+) (שנ׳|דק׳|שעות|ש׳)','g'),'$1$2 $3 ago'],
+  [new RegExp('(^|[^'+L+'])עוד ([0-9.:]+(?: (?:ש׳|דק׳|שנ׳))?)','g'),'$1$2 left'],
+  [new RegExp('(^|[^'+L+'])בעוד ([0-9]+) ימים','g'),'$1in $2 days']];
+ return function(s){if(s==null)return s;s=String(s);if(!HEB.test(s))return s;var c=cache[s];if(c!=null)return c;
+  var t=s.trim(),o;
+  if(Object.prototype.hasOwnProperty.call(I18N,t))o=s.replace(t,I18N[t]);
+  else{o=s;for(var i=0;i<rules.length;i++)o=o.replace(rules[i][0],rules[i][1]);o=o.replace(re,function(m,p,k){return p+I18N[k];});}
+  o=o.replace(/״/g,'"').replace(/׳/g,"'");cache[s]=o;return o;};})();
+(function(){
+ var root=document.documentElement;
+ function done(){root.classList.remove('i18n-wait');}
+ if(LANG!=='en'){done();return;}
+ root.setAttribute('lang','en');root.setAttribute('dir','ltr');
+ var ATTR=['aria-label','title','placeholder'],HEB=/[֐-׿]/;
+ function no(el){for(;el&&el.nodeType===1;el=el.parentNode){if(el.classList&&el.classList.contains('notr'))return true;var n=el.tagName;if(n==='SCRIPT'||n==='STYLE'||n==='TEXTAREA')return true;}return false;}
+ function txt(n){var v=n.nodeValue;if(!v||!HEB.test(v)||no(n.parentNode))return;var t=tr(v);if(t!==v)n.nodeValue=t;}
+ function att(el){if(no(el))return;for(var i=0;i<ATTR.length;i++){var v=el.getAttribute(ATTR[i]);if(v&&HEB.test(v)){var t=tr(v);if(t!==v)el.setAttribute(ATTR[i],t);}}}
+ function walk(n){if(n.nodeType===3){txt(n);return;}if(n.nodeType!==1)return;if(no(n))return;att(n);
+  var w=document.createTreeWalker(n,5,null),x;while((x=w.nextNode())){if(x.nodeType===3)txt(x);else att(x);}}
+ window.trAll=function(){walk(document.body);document.title=tr(document.title);};
+ var cf=window.confirm;window.confirm=function(m){return cf.call(window,tr(m));};
+ function start(){trAll();done();
+  new MutationObserver(function(ms){for(var i=0;i<ms.length;i++){var m=ms[i];
+   if(m.type==='characterData')txt(m.target);
+   else if(m.type==='attributes')att(m.target);
+   else for(var j=0;j<m.addedNodes.length;j++)walk(m.addedNodes[j]);}})
+  .observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:ATTR});}
+ if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+ setTimeout(done,1500);})();
+
+// v2.64: קבצים שמורים בטלפון (אותו service worker כמו השלט)
+if('serviceWorker' in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js').catch(function(){});}catch(e){}}
 /* =====================================================================
    KiNET Bridge — גישה מרחוק לממשק המלא (מנהרת HTTP דרך MQTT, לוח v2.48+)
    כל בקשת fetch של דף הלוח נשלחת ל-kinet/http/req ומתקבלת מ-kinet/http/res/<cid>.
@@ -167,7 +220,7 @@ document.addEventListener('touchstart',function(){},{passive:true});   // מפע
 
 // ---------- טעינת mqtt.js עם שרתי גיבוי ----------
 // אם שרת אחד חסום (רשת, חוסם תוכן) — מנסים את הבא, במקום שהדף ייתקע בלי הודעה
-var MQTT_URLS=['https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js','https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js','https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js'];
+var MQTT_URLS=['mqtt.min.js','https://cdn.jsdelivr.net/npm/mqtt@4.3.7/dist/mqtt.min.js','https://unpkg.com/mqtt@4.3.7/dist/mqtt.min.js','https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js'];
 var mqW=[],mqBusy=false;
 function needMqtt(cb){if(window.mqtt){cb(true);return;}mqW.push(cb);if(mqBusy)return;mqBusy=true;var i=0;
  (function next(){if(window.mqtt||i>=MQTT_URLS.length){mqBusy=false;var ok=!!window.mqtt,w=mqW;mqW=[];w.forEach(function(f){f(ok);});return;}
@@ -410,7 +463,7 @@ function reloadPage(){if(!loaded){retry();return;}if(idle){resume();return;}load
 // הרקע של הדף (למשל במצב כהה) נמשך גם לשוליים של ה-notch ופס הבית, כדי שלא יופיעו פסים בהירים
 var lastBg='';
 function syncFrame(){try{var w=$('frame').contentWindow,d=w.document,t=d.title;
- if(t&&t!==$('bName').textContent){$('bName').textContent=t;document.title=t+' · מרחוק';}
+ if(t&&t!==$('bName').dataset.t){$('bName').dataset.t=t;$('bName').classList.add('notr');$('bName').textContent=t;document.title=t+' · '+tr('מרחוק');}
  if(!d.body)return;var bg=w.getComputedStyle(d.body).backgroundColor;
  if(!bg||bg==='transparent'||bg==='rgba(0, 0, 0, 0)')bg=w.getComputedStyle(d.documentElement).backgroundColor;
  if(bg&&bg!=='transparent'&&bg!=='rgba(0, 0, 0, 0)'&&bg!==lastBg){lastBg=bg;document.documentElement.style.setProperty('--fbg',bg);}}catch(x){}}
