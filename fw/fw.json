@@ -1,11 +1,11 @@
 {
-  "v": "v2.69",
+  "v": "v2.70",
   "notes": {
-    "he": "• עדכון קושחה בלחיצה מהשלט ומהממשק\n• התראות לטלפון (ntfy)\n• ממשק הלוח באנגלית",
-    "en": "• One-tap firmware update from the remote and the interface\n• Phone alerts (ntfy)\n• Board interface in English"
+    "he": "• עדכון אוטומטי בשעה שקטה\n• התראה לטלפון אם עדכון אוטומטי נכשל",
+    "en": "• Automatic update at a quiet hour\n• Phone alert if an automatic update fails"
   },
   "files": {
-    "ESP32-P4-NANO": "kinet_bridge_v2.69_nano.signed",
-    "ESP32-P4-ETH": "kinet_bridge_v2.69_eth.signed"
+    "ESP32-P4-ETH": "kinet_bridge_v2.70_eth.signed",
+    "ESP32-P4-NANO": "kinet_bridge_v2.70_nano.signed"
   }
 }
