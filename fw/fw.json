@@ -1,11 +1,13 @@
 {
-  "v": "v2.70",
+  "v": "v2.71",
   "notes": {
-    "he": "• עדכון אוטומטי בשעה שקטה\n• התראה לטלפון אם עדכון אוטומטי נכשל",
-    "en": "• Automatic update at a quiet hour\n• Phone alert if an automatic update fails"
+    "he": "• שיפורים ותיקונים",
+    "en": "• Improvements and fixes"
   },
   "files": {
-    "ESP32-P4-ETH": "kinet_bridge_v2.70_eth.signed",
-    "ESP32-P4-NANO": "kinet_bridge_v2.70_nano.signed"
-  }
+    "ESP32-P4-ETH": "kinet_bridge_v2.71_eth.signed",
+    "ESP32-P4-NANO": "kinet_bridge_v2.71_nano.signed"
+  },
+  "pub": 1794509353,
+  "hold": 24
 }
