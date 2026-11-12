@@ -1,4 +1,4 @@
-/* CORE-X — service worker (v2.64)
+/* CORE-X — service worker (v2.66)
    שומר בטלפון את "הקליפה" של השלט: הדפים, mqtt.js, האייקונים והגופן.
    כל פתיחה מקבלת מיד את מה ששמור, ובמקביל נבדק ברקע אם יש גרסה חדשה ב-GitHub.
    אם app.html או remote.html השתנו — הם נשמרים, והשלט מציג "גרסה חדשה מוכנה — רענן".
@@ -7,7 +7,7 @@
 const VERSION = 'corex-1';
 const FONTS = 'corex-fonts';
 const SHELL = ['app.html', 'remote.html', 'client.html', 'admin.html', 'mqtt.min.js', 'manifest.webmanifest',
-  'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'icon-32.png'];
+  'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'icon-32.png', 'jsqr.min.js'];
 const PAGES = ['app.html', 'remote.html'];
 
 self.addEventListener('install', (e) => {
