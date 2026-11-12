@@ -1,0 +1,39 @@
+# CORE-X — שומר "הלוח לא מקוון": כל 5 דקות בודק את נושא ה-online של כל לוח בשרת ה-MQTT,
+# ושולח התראה לטלפון (ntfy) כשלוח נעלם וכשהוא חוזר. הלוח עצמו לא יכול להודיע שהוא נפל — לכן זה כאן.
+# הגדרה: Settings › Secrets and variables › Actions › New repository secret
+#   שם: CORE_X_BOARDS   ערך: רשימת לוחות ב-JSON (ראה watch/README.md)
+name: CORE-X board watch
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+concurrency:
+  group: core-x-watch
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: watch
+      - uses: actions/cache/restore@v4
+        with:
+          path: watch/state.json
+          key: core-x-watch-${{ github.run_id }}
+          restore-keys: core-x-watch-
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save --no-audit --no-fund mqtt@5
+        working-directory: watch
+      - run: node watch.mjs
+        working-directory: watch
+        env:
+          CORE_X_BOARDS: ${{ secrets.CORE_X_BOARDS }}
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: watch/state.json
+          key: core-x-watch-${{ github.run_id }}
