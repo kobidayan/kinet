@@ -393,6 +393,29 @@ if(l==="en"){var h=document.documentElement;h.setAttribute("lang","en");h.setAtt
 .edx-row.kR input[type=range]{accent-color:#e5484d}.edx-row.kG input[type=range]{accent-color:#30a46c}.edx-row.kB input[type=range]{accent-color:#3e63dd}
 .edx-row.kW input[type=range]{accent-color:#9aa3ae}.edx-row.kA input[type=range]{accent-color:#f5a524}.edx-row.kUV input[type=range]{accent-color:#8e4ec6}
 @media(max-width:560px){.edx-grid{grid-template-columns:1fr}}
+
+/* v2.75: מחשבון ערוצים */
+.edx-seg{display:inline-flex;align-self:flex-start;border:1px solid var(--bd,var(--line,#ccd));border-radius:12px;overflow:hidden}
+.edx-seg button{font:inherit;font-weight:700;font-size:14px;padding:8px 16px;border:0;background:var(--card,#fff);color:var(--txt,inherit);cursor:pointer}
+.edx-seg button.on{background:var(--acc,#1d4ed8);color:#fff}
+.edx-calc{display:grid;grid-template-columns:minmax(260px,340px) 1fr;gap:14px;align-items:start}
+.edx-calc .edx-mon{grid-column:1/-1}
+@media(max-width:700px){.edx-calc{grid-template-columns:1fr}}
+.edx-kp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.edx-cl{grid-column:1/-1;font:700 20px/1.2 ui-monospace,Menlo,Consolas,monospace;background:#0f1419;color:#7cf29a;border-radius:10px;padding:12px 14px;min-height:50px;word-break:break-word;text-align:left}
+.edx-k{font:inherit;font-weight:800;font-size:19px;min-height:54px;border-radius:12px;border:1px solid var(--bd,var(--line,#ccd));background:var(--card,#fff);color:var(--txt,inherit);cursor:pointer;touch-action:manipulation;user-select:none}
+.edx-k:active{transform:scale(.96)}
+.edx-k.op{background:var(--line2,#eef0f3);font-size:15px}
+.edx-k.clr{background:#fbe9e9;color:#b42318}
+.edx-k.ent{background:var(--acc,#1d4ed8);border-color:var(--acc,#1d4ed8);color:#fff;font-size:15px}
+.edx-cside{display:flex;flex-direction:column;gap:10px}
+.edx-cside code{background:var(--line2,#eef0f3);border-radius:6px;padding:1px 6px;font-size:12px}
+.edx-ch{display:flex;flex-wrap:wrap;gap:6px}
+.edx-ch button{font:12px ui-monospace,Menlo,Consolas,monospace;padding:4px 8px;border-radius:8px;border:1px solid var(--line,#dde);background:var(--card,#fff);color:inherit;cursor:pointer;direction:ltr}
+.edx-mon{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:3px;max-height:420px;overflow:auto;padding:2px}
+.edx-mc{font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:38px;padding:2px 0;border-radius:6px;border:1px solid var(--line,#e3e6ea);background:transparent;color:inherit;cursor:pointer;line-height:1.1}
+.edx-mc i{font-style:normal;font-size:10px;color:var(--dim,#667)}.edx-mc b{font-size:12px;min-height:13px}
+.edx-mc.sel{outline:2px solid var(--acc,#1d4ed8);outline-offset:-2px}
 .scenes.delm .scene{outline:2px dashed #d64545;outline-offset:-2px;position:relative}.scenes.delm .scene:disabled{opacity:.35}
 .scx{display:block;margin-top:6px;padding:4px 0;border-radius:8px;background:#d64545;color:#fff;font-size:14px;font-weight:700;text-align:center}
 .scenes.delm .scene{background:rgba(214,69,69,.13);border-color:#d64545}
@@ -472,7 +495,7 @@ if(l==="en"){var h=document.documentElement;h.setAttribute("lang","en");h.setAtt
       <button class="mini" onclick="refreshScenes()">↻ רענן</button>
       <button class="mini" id="scdelbtn" onclick="scDelMode()" style="display:none">מחיקה</button>
     </h2>
-    <div class="scdelnote" id="scdelnote" style="display:none">מצב מחיקה: לוחצים על תרחיש, ואז לוחצים עליו שוב כדי למחוק. <a href="#" onclick="scDelMode();return false">סיום</a> <span class="notr" style="display:block;opacity:.8;font-size:12px;margin-top:2px" dir="ltr">app v2.74</span></div>
+    <div class="scdelnote" id="scdelnote" style="display:none">מצב מחיקה: לוחצים על תרחיש, ואז לוחצים עליו שוב כדי למחוק. <a href="#" onclick="scDelMode();return false">סיום</a> <span class="notr" style="display:block;opacity:.8;font-size:12px;margin-top:2px" dir="ltr">app v2.75</span></div>
     <div class="durs" id="durs" style="display:none"><span>להדליק:</span><button type="button" data-m="0" class="on" onclick="setDur(0)">עד שמשנים</button><button type="button" data-m="60" onclick="setDur(60)">לשעה</button><button type="button" data-m="120" onclick="setDur(120)">לשעתיים</button><button type="button" data-m="240" onclick="setDur(240)">ל-4 שעות</button></div>
     <div class="scenes" id="scenes"><div class="empty">מתחבר…</div></div>
     <div class="simpleBar"><button class="btn gray" onclick="stopPlay()">עצור</button><button class="btn rec" onclick="allOff()">כבה הכול</button></div>
@@ -1045,7 +1068,7 @@ var EDX=(function(){
   S.busy=true;var wasOn=S.on;
   Promise.resolve(S.H.T.set(S.u,a,h)).then(function(){S.busy=false;S.on=true;paintOn();if(!S.us.includes(S.u)){S.us.push(S.u);S.us.sort(function(x,y){return x-y;});paintUs();}if(!wasOn)S.H.toast('עורך ערוצים פעיל — התאורה לפי הסלידרים','ok');},
    function(e){S.busy=false;S.on=false;paintOn();S.H.toast('הלוח לא קיבל את הערכים: '+String(e||'אין תשובה')+' — בדוק שהלוח על v2.72 ומעלה','err');});}
- function setCh(c,x,noPaint){x=Math.max(0,Math.min(255,x|0));if(S.v[c-1]===x)return;S.v[c-1]=x;mark(c,c);if(!noPaint){var r=$e('edr'+c),n=$e('edn'+c);if(r&&r.value!=x)r.value=x;if(n&&+n.value!==x)n.value=x;}}
+ function setCh(c,x,noPaint){x=Math.max(0,Math.min(255,x|0));if(S.v[c-1]===x)return;S.v[c-1]=x;mark(c,c);if(!noPaint){var r=$e('edr'+c),n=$e('edn'+c);if(r&&r.value!=x)r.value=x;if(n&&+n.value!==x)n.value=x;}monCell(c);}
  function rgbOf(b){var o={};b.ch.forEach(function(q){o[q.k]=S.v[q.c-1];});return '#'+hex2(o.R||0)+hex2(o.G||0)+hex2(o.B||0);}
  function colorTo(b,hx){var r=parseInt(hx.substr(1,2),16),g=parseInt(hx.substr(3,2),16),bl=parseInt(hx.substr(5,2),16);
   b.ch.forEach(function(q){if(q.k==='R')setCh(q.c,r);else if(q.k==='G')setCh(q.c,g);else if(q.k==='B')setCh(q.c,bl);else if(q.k==='D'&&!S.v[q.c-1])setCh(q.c,255);});}
@@ -1068,7 +1091,84 @@ var EDX=(function(){
   return Promise.resolve(S.H.T.get(u)).then(function(o){if(!o)throw 'הלוח לא ענה';apply(o);}).catch(function(e){S.H.toast(String(e),'err');draw();});}
  function apply(o){if(o.u!=null&&o.u!==S.u)S.u=o.u;syncLbl();
   if(S.first){S.first=false;var nu=(o.us&&o.us.length)?o.us[0]:(o.uf!=null?o.uf:S.u);if(nu!==S.u){S.page=0;load(nu);return;}}var v=String(o.v||'');for(var i=0;i<512;i++)S.v[i]=parseInt(v.substr(i*2,2),16)||0;
-  S.us=o.us||[];S.on=!!o.on;S.prev=o.prev||'';paintOn();paintUs();draw();}
+  S.us=o.us||[];S.on=!!o.on;S.prev=o.prev||'';paintOn();paintUs();draw();monAll();}
+ // ===== v2.75: מחשבון ערוצים בסגנון Visual Productions — 1 THRU 10 @ FULL ENTER =====
+ var CV={sel:[],t:[],hist:[],pct:false,built:-1};
+ try{CV.pct=localStorage.getItem('edxPct')==='1';}catch(e){}
+ function vw(){try{return localStorage.getItem('edxView')||'calc';}catch(e){return 'calc';}}
+ function isNum(x){return x!=null&&/^\d+$/.test(x);}
+ function shown(x){return CV.pct?Math.round(x*100/255):x;}
+ function ranges(a){if(!a.length)return '';var s=a.slice().sort(function(x,y){return x-y;}),o=[],st=s[0],pv=s[0];
+  for(var i=1;i<=s.length;i++){var c=s[i];if(c===pv+1){pv=c;continue;}o.push(st===pv?String(st):st+'–'+pv);st=pv=c;}return o.join(', ');}
+ function cline(){var e=$e('edcl');if(!e)return;e.textContent=CV.t.length?CV.t.join(' '):'_';
+  var s=$e('edcsel');if(s)s.textContent=CV.sel.length?'נבחרו ביוניברס '+S.u+': '+ranges(CV.sel)+' ('+CV.sel.length+')':'עוד לא נבחרו ערוצים';
+  var p=$e('edpct');if(p)p.textContent=CV.pct?'ערכים באחוזים (0–100)':'ערכי DMX (0–255)';}
+ function parse(t){var i=0,o={u:null,sel:null,val:null};
+  function num(){var x=t[i];if(isNum(x)){i++;return +x;}return null;}
+  if(t[i]==='U'){i++;var u=num();if(u==null)throw 'אחרי U צריך מספר יוניברס';if(u>255)throw 'יוניברס 0–255';o.u=u;}
+  var sel=null,mode='+';
+  while(i<t.length&&t[i]!=='@'&&t[i]!=='FULL'){var k=t[i],list=[];
+   if(k==='+'||k==='-'){if(sel===null)throw 'לפני '+k+' צריך ערוץ';mode=k;i++;continue;}
+   if(k==='ALL'){i++;for(var c=1;c<=512;c++)list.push(c);}
+   else{var a=num();if(a==null)throw 'לא הבנתי את "'+k+'"';
+    if(t[i]==='THRU'){i++;var b=num();if(b==null)throw 'אחרי THRU צריך מספר ערוץ';if(b<a){var z=a;a=b;b=z;}
+     if(a<1||b>512)throw 'ערוצים 1–512';for(var c2=a;c2<=b;c2++)list.push(c2);}
+    else{if(a<1||a>512)throw 'ערוץ '+a+' לא קיים (1–512)';list=[a];}}
+   sel=sel||[];if(mode==='+'){list.forEach(function(c){if(sel.indexOf(c)<0)sel.push(c);});}else sel=sel.filter(function(c){return list.indexOf(c)<0;});mode='+';}
+  if(mode!=='+')throw 'אחרי '+mode+' צריך ערוץ';
+  if(t[i]==='@'||t[i]==='FULL'){if(t[i]==='@')i++;var k2=t[i],mx=CV.pct?100:255;
+   if(k2==='FULL'){i++;o.val={abs:255};}
+   else if(k2==='+'||k2==='-'){i++;var n=num();if(n==null)throw 'אחרי @ '+k2+' צריך מספר';if(n>mx)throw 'עד '+mx;n=CV.pct?Math.round(n*2.55):n;o.val={rel:k2==='+'?n:-n};}
+   else{var n2=num();if(n2==null)throw 'אחרי @ צריך ערך';if(n2>mx)throw (CV.pct?'אחוזים: 0–100':'ערך DMX: 0–255');o.val={abs:CV.pct?Math.round(n2*2.55):n2};}}
+  if(i<t.length)throw 'יש משהו מיותר בסוף הפקודה: '+t.slice(i).join(' ');
+  o.sel=sel;return o;}
+ function run(){if(!CV.t.length){if(CV.hist.length){CV.t=CV.hist[0].split(' ');cline();}return;}
+  var o,txt=CV.t.join(' ');try{o=parse(CV.t);}catch(e){S.H.toast(String(e),'err');return;}
+  if(!o.sel&&!o.val&&o.u==null){S.H.toast('הפקודה ריקה','err');return;}
+  var go=function(){var sel=o.sel||(o.val?CV.sel:null);
+   if(o.val&&(!sel||!sel.length)){S.H.toast('בחר קודם ערוצים, למשל 1 THRU 10','err');return;}
+   if(o.sel)CV.sel=o.sel;
+   if(o.val){sel.forEach(function(c){var x=o.val.abs!=null?o.val.abs:S.v[c-1]+o.val.rel;setCh(c,x,true);});if(vw()==='sl')draw();}
+   CV.hist.unshift(txt);CV.hist=CV.hist.slice(0,8);CV.t=[];cline();monAll();hist();};
+  if(o.u!=null&&o.u!==S.u){flush();S.page=0;CV.sel=[];Promise.resolve(load(o.u)).then(go);}else go();}
+ function hist(){var e=$e('edch');if(!e)return;e.innerHTML=CV.hist.map(function(h){return '<button type="button" onclick="EDX.ck(\'H\',this.textContent)">'+esc(h)+'</button>';}).join('');}
+ function key(k,arg){
+  if(k==='H'){CV.t=String(arg).split(' ');cline();return;}
+  var brk=CV.brk;CV.brk=false;
+  if(k==='SP'){CV.brk=true;return;}
+  if(/^\d$/.test(k)){var l=CV.t[CV.t.length-1];if(isNum(l)&&l.length<3&&!brk)CV.t[CV.t.length-1]=l==='0'?k:l+k;else CV.t.push(k);}
+  else if(k==='BS'){var l2=CV.t[CV.t.length-1];if(isNum(l2)&&l2.length>1)CV.t[CV.t.length-1]=l2.slice(0,-1);else CV.t.pop();}
+  else if(k==='CLR'){if(CV.t.length)CV.t=[];else{CV.sel=[];monAll();}}
+  else if(k==='ENTER'){run();return;}
+  else if(k==='PCT'){CV.pct=!CV.pct;try{localStorage.setItem('edxPct',CV.pct?'1':'0');}catch(e){}monAll();}
+  else{if(CV.t[CV.t.length-1]===k&&k!=='+'&&k!=='-')return;CV.t.push(k);}
+  cline();}
+ function monBuild(){var e=$e('edmon');if(!e)return;var h='';for(var c=1;c<=512;c++)h+='<button type="button" class="edx-mc" id="edmc'+c+'" onclick="EDX.cell('+c+')"><i>'+c+'</i><b></b></button>';e.innerHTML=h;CV.built=1;}
+ function monCell(c){var e=$e('edmc'+c);if(!e)return;var x=S.v[c-1];e.lastChild.textContent=x?shown(x):'';
+  e.style.background=x?'rgba(245,166,35,'+(0.12+0.6*x/255).toFixed(2)+')':'';e.classList.toggle('sel',CV.sel.indexOf(c)>=0);}
+ function monAll(){if(!$e('edmon'))return;if(CV.built<0)monBuild();for(var c=1;c<=512;c++)monCell(c);cline();}
+ function setView(v){try{localStorage.setItem('edxView',v);}catch(e){}var c=$e('edcalc'),s=$e('edsl');if(!c)return;
+  c.style.display=v==='calc'?'':'none';s.style.display=v==='calc'?'none':'';
+  $e('edvc').classList.toggle('on',v==='calc');$e('edvs').classList.toggle('on',v!=='calc');if(v==='calc')monAll();else draw();}
+ function kbd(ev){if(!S.root||!S.root.offsetParent||vw()!=='calc')return;var a=document.activeElement;
+  if(a&&/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))return;if(ev.ctrlKey||ev.metaKey||ev.altKey)return;
+  var k=ev.key,m=null;if(/^\d$/.test(k))m=k;else if(k==='Enter')m='ENTER';else if(k==='Backspace')m='BS';else if(k==='Escape')m='CLR';else if(k===' ')m='SP';
+  else if(k==='+'||k==='-'||k==='@')m=k;else if(k==='t'||k==='T'||k==='>')m='THRU';else if(k==='f'||k==='F')m='FULL';else if(k==='a'||k==='A')m='ALL';else if(k==='u'||k==='U')m='U';
+  if(!m)return;ev.preventDefault();key(m);}
+ function calcHtml(){function K(l,k,c){return '<button type="button" class="edx-k'+(c?' '+c:'')+'" onclick="EDX.ck(\''+k+'\')">'+l+'</button>';}
+  return '<div id="edcalc" class="edx-calc"><div class="edx-kp" dir="ltr">'+
+   '<div class="edx-cl" id="edcl">_</div>'+
+   K('7','7')+K('8','8')+K('9','9')+K('THRU','THRU','op')+
+   K('4','4')+K('5','5')+K('6','6')+K('+','+','op')+
+   K('1','1')+K('2','2')+K('3','3')+K('−','-','op')+
+   K('0','0')+K('@','@','op')+K('FULL','FULL','op')+K('ALL','ALL','op')+
+   K('U','U','op')+K('⌫','BS')+K('CLR','CLR','clr')+K('ENTER','ENTER','ent')+
+   '</div><div class="edx-cside">'+
+   '<div class="edx-dim" id="edcsel"></div>'+
+   '<div class="edx-dim">דוגמאות: <code dir="ltr">1 THRU 10 @ FULL</code> · <code dir="ltr">1 + 5 @ 128</code> · <code dir="ltr">ALL @ 0</code> · <code dir="ltr">@ + 20</code> (על הבחירה האחרונה) · <code dir="ltr">U 2 ENTER</code> (מעבר ליוניברס 2). ENTER ריק חוזר על הפקודה האחרונה. לחיצה על ריבוע ערוץ מוסיפה אותו לפקודה. גם המקלדת עובדת: ספרות, T=THRU, ‎@‎, F=FULL, A=ALL, U, Enter, Esc.</div>'+
+   '<div class="edx-bar"><button type="button" class="edx-b" onclick="EDX.ck(\'PCT\')" id="edpct"></button></div>'+
+   '<div class="edx-ch" id="edch"></div></div>'+
+   '<div class="edx-mon" id="edmon" dir="ltr"></div></div>';}
  function scFill(){var s=$e('edsc');if(!s)return;var cur=s.value,n=(S.H.scenes()||[]).filter(function(x){return x&&x[0]!=='~';});
   s.innerHTML='<option value="">— בחר תרחיש —</option>'+n.map(function(x){return '<option'+(x===cur?' selected':'')+'>'+esc(x)+'</option>';}).join('');}
  var api={
@@ -1083,22 +1183,27 @@ var EDX=(function(){
     '<label id="edcw" style="display:none">התבנית <input type="text" id="edc" value="D,R,G,B" onchange="EDX.lbl()" placeholder="D,R,G,B,ST" style="width:140px"></label>'+
     '<label>הגוף הראשון בערוץ <input type="number" id="eds" min="1" max="512" value="1" onchange="EDX.lbl()" style="width:70px"></label></div>'+
    '<div class="edx-dim" id="edus"></div>'+
+   '<div class="edx-seg"><button type="button" id="edvc" onclick="EDX.view(\'calc\')">🔢 מחשבון</button><button type="button" id="edvs" onclick="EDX.view(\'sl\')">🎚 סלידרים</button></div>'+
+   calcHtml()+'<div id="edsl">'+
    '<div class="edx-bar" id="edallw"><label>צבע לכל הגופים בעמוד <input type="color" id="edall" value="#ffffff"></label><button type="button" class="edx-b" onclick="EDX.allCol()">החל</button>'+
     '<span style="flex:1"></span><button type="button" class="edx-b" onclick="EDX.pageAll(0)">העמוד ל-0</button><button type="button" class="edx-b" onclick="EDX.pageAll(255)">העמוד מלא</button></div>'+
    '<div class="edx-pg"><button type="button" class="edx-b" onclick="EDX.pg(-1)" aria-label="עמוד קודם">‹</button><span id="edpg"></span><button type="button" class="edx-b" onclick="EDX.pg(1)" aria-label="עמוד הבא">›</button></div>'+
    '<div class="edx-grid" id="edgrid"></div>'+
-   '<div class="edx-pg"><button type="button" class="edx-b" onclick="EDX.pg(-1)" aria-label="עמוד קודם">‹</button><button type="button" class="edx-b" onclick="EDX.pg(1)" aria-label="עמוד הבא">›</button></div>'+
+   '<div class="edx-pg"><button type="button" class="edx-b" onclick="EDX.pg(-1)" aria-label="עמוד קודם">‹</button><button type="button" class="edx-b" onclick="EDX.pg(1)" aria-label="עמוד הבא">›</button></div></div>'+
    '<div class="edx-save"><label>שם התרחיש <input type="text" id="edname" maxlength="40" placeholder="למשל: אולם — ערב"></label><button type="button" class="edx-b pri" onclick="EDX.save()">שמור כתרחיש</button>'+
     '<span style="flex:1"></span><label>פתח תרחיש לעריכה <select id="edsc" onfocus="EDX.scFill()"></select></label><button type="button" class="edx-b" onclick="EDX.open()">פתח</button></div>'+
    '<div class="edx-bar"><button type="button" class="edx-b" onclick="EDX.clr(0)">נקה את היוניברס הזה</button><button type="button" class="edx-b" onclick="EDX.clr(1)">נקה הכול</button>'+
     '<span class="edx-dim">התרחיש נשמר עם כל היוניברסים שיש בהם ערכים.</span></div></div>';
-   if(!S.ready){S.ready=true;setInterval(flush,H.interval||100);setInterval(function(){if(S.on&&S.root&&S.root.offsetParent)Promise.resolve(H.T.ping()).catch(function(){});},60000);}
+   CV.built=-1;setView(vw());hist();
+   if(!S.ready){S.ready=true;document.addEventListener('keydown',kbd);setInterval(flush,H.interval||100);setInterval(function(){if(S.on&&S.root&&S.root.offsetParent)Promise.resolve(H.T.ping()).catch(function(){});},60000);}
    var su=null;try{su=localStorage.getItem('edxU');}catch(e){}S.first=(su==null);scFill();load(su!=null?(+su||0):S.u);},
   refresh:function(){if(S.root)load(S.u);},
   data:function(o){if(S.root&&o)apply(o);},
   status:function(on){if(!S.root)return;on=!!on;if(on!==S.on){S.on=on;paintOn();}},
   u:function(){return S.u;},
-  uni:function(u){u=Math.max(0,Math.min(255,u|0));flush();S.page=0;load(u);},
+  uni:function(u){u=Math.max(0,Math.min(255,u|0));if(u!==S.u)CV.sel=[];flush();S.page=0;load(u);},
+  view:setView,ck:key,
+  cell:function(c){var l=CV.t[CV.t.length-1];if(isNum(l))CV.t.push('+');else if(l==='@'||l==='FULL'){CV.t=[];}CV.t.push(String(c));cline();},
   ch:function(c,x){setCh(c,x);},
   col:function(bi,hx){var b=S.cur&&S.cur[bi];if(b)colorTo(b,hx);},
   blk:function(bi,x){var b=S.cur&&S.cur[bi];if(!b)return;b.ch.forEach(function(q){setCh(q.c,x);});draw();},
