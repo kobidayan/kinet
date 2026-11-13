@@ -8,6 +8,6 @@
     "ESP32-P4-ETH": "kinet_bridge_v2.72_eth.signed",
     "ESP32-P4-NANO": "kinet_bridge_v2.72_nano.signed"
   },
-  "pub": 1794546038,
+  "pub": 1794546216,
   "hold": 24
 }
