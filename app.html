@@ -395,7 +395,7 @@ if(l==="en"){var h=document.documentElement;h.setAttribute("lang","en");h.setAtt
 @media(max-width:560px){.edx-grid{grid-template-columns:1fr}}
 .scenes.delm .scene{outline:2px dashed #d64545;outline-offset:-2px;position:relative}.scenes.delm .scene:disabled{opacity:.35}
 .scx{display:block;margin-top:6px;padding:4px 0;border-radius:8px;background:#d64545;color:#fff;font-size:14px;font-weight:700;text-align:center}
-.scenes.delm .scene{background:#fdeaea;border-color:#d64545}
+.scenes.delm .scene{background:rgba(214,69,69,.13);border-color:#d64545}
 .scenes.delm .scene .ssw{opacity:.5}
 .scx.arm{background:#8b0000;animation:scxp .6s ease-in-out infinite alternate}@keyframes scxp{from{opacity:1}to{opacity:.6}}
 #scdelbtn.on{background:#d64545;color:#fff;border-color:#d64545;padding:4px 12px;border-radius:999px}
@@ -472,7 +472,7 @@ if(l==="en"){var h=document.documentElement;h.setAttribute("lang","en");h.setAtt
       <button class="mini" onclick="refreshScenes()">↻ רענן</button>
       <button class="mini" id="scdelbtn" onclick="scDelMode()" style="display:none">מחיקה</button>
     </h2>
-    <div class="scdelnote" id="scdelnote" style="display:none">מצב מחיקה: לוחצים על תרחיש, ואז לוחצים עליו שוב כדי למחוק. <a href="#" onclick="scDelMode();return false">סיום</a> <span class="notr" style="display:block;opacity:.8;font-size:12px;margin-top:2px" dir="ltr">app v2.73.2</span></div>
+    <div class="scdelnote" id="scdelnote" style="display:none">מצב מחיקה: לוחצים על תרחיש, ואז לוחצים עליו שוב כדי למחוק. <a href="#" onclick="scDelMode();return false">סיום</a> <span class="notr" style="display:block;opacity:.8;font-size:12px;margin-top:2px" dir="ltr">app v2.74</span></div>
     <div class="durs" id="durs" style="display:none"><span>להדליק:</span><button type="button" data-m="0" class="on" onclick="setDur(0)">עד שמשנים</button><button type="button" data-m="60" onclick="setDur(60)">לשעה</button><button type="button" data-m="120" onclick="setDur(120)">לשעתיים</button><button type="button" data-m="240" onclick="setDur(240)">ל-4 שעות</button></div>
     <div class="scenes" id="scenes"><div class="empty">מתחבר…</div></div>
     <div class="simpleBar"><button class="btn gray" onclick="stopPlay()">עצור</button><button class="btn rec" onclick="allOff()">כבה הכול</button></div>
@@ -1302,24 +1302,24 @@ function renderScenes(txt){
   scenes=txt.split('\n').map(function(s){return s.trim()}).filter(function(s){return s&&s!=='(אין סצנות)'});
   scenesLoaded=true;
   var box=$('scenes');
+  var can=permOk('scenes')&&permOk('test');if(!can&&SCDEL){SCDEL=false;SCDEL_ARM=null;$('scdelnote').style.display='none';$('scdelbtn').textContent='מחיקה';$('scdelbtn').classList.remove('on');}
   if(!scenes.length){box.innerHTML='<div class="empty">אין תרחישים שמורים</div>';}
   else{
     box.innerHTML='';
     scenes.forEach(function(n){var d=document.createElement('button');d.type='button';d.className='scene';d.dataset.name=n;
-      d.innerHTML='<span class="ssw" style="background:'+scBg(n)+'"><span>מתנגן</span></span><span class="notr">'+esc(scLabel(n))+'</span>'+(SCDEL&&n[0]!=='~'?'<b class="scx">✕ למחיקה</b>':'');
+      d.innerHTML='<span class="ssw" style="background:'+scBg(n)+'"><span>מתנגן</span></span><span class="notr">'+esc(scLabel(n))+'</span>'+(SCDEL?'<b class="scx">✕ למחיקה</b>':'');
       if(curMode==='PLAYING'&&n===curPlay)d.classList.add('active');
-      if(SCDEL&&n[0]==='~')d.disabled=true;
       d.onclick=function(){if(SCDEL)scDelete(n,d);else playScene(n);};box.appendChild(d);});
   }
   box.classList.toggle('delm',SCDEL);
-  var db=$('scdelbtn');if(db){var can=permOk('scenes')&&permOk('test');db.style.display=can?'':'none';if(!can&&SCDEL){SCDEL=false;$('scdelnote').style.display='none';}}
+  var db=$('scdelbtn');if(db)db.style.display=can?'':'none';
   refreshSceneSelects();
   renderSchedView();
 }
 // v2.73: מחיקת תרחישים מהשלט (טכנאי: הרשאת תרחישים + זיהוי גוף)
 var SCDEL=false;
 function scDelMode(){SCDEL=!SCDEL;$('scdelbtn').textContent=SCDEL?'סיום':'מחיקה';$('scdelbtn').classList.toggle('on',SCDEL);$('scdelnote').style.display=SCDEL?'':'none';renderScenes(scenes.join('\n'));}
-// v2.73.2: אישור בלחיצה שנייה על אותו אריח (בלי חלון confirm — יש טלפונים שחוסמים אותו בשקט)
+// v2.74: גם אפקטים (✦) נמחקים. אישור בלחיצה שנייה על אותו אריח (בלי חלון confirm — יש טלפונים שחוסמים אותו בשקט)
 var SCDEL_ARM=null,SCDEL_T=0;
 function scDelete(n,el){
   if(SCDEL_ARM!==n||Date.now()-SCDEL_T>5000){
