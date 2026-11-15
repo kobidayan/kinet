@@ -1,13 +1,13 @@
 {
-  "v": "v2.77",
+  "v": "v2.78",
   "notes": {
     "he": "• שיפורים ותיקונים",
     "en": "• Improvements and fixes"
   },
   "files": {
-    "ESP32-P4-ETH": "kinet_bridge_v2.77_eth.signed",
-    "ESP32-P4-NANO": "kinet_bridge_v2.77_nano.signed"
+    "ESP32-P4-ETH": "kinet_bridge_v2.78_eth.signed",
+    "ESP32-P4-NANO": "kinet_bridge_v2.78_nano.signed"
   },
-  "pub": 1794766185,
+  "pub": 1794768075,
   "hold": 24
 }
